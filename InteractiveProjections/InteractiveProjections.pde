@@ -1,14 +1,17 @@
 void setup() {
   size(400, 400, P2D);
 }
+
 void draw() {
   My3DPoint eye = new My3DPoint(-100, -100, -5000);
   My3DPoint origin = new My3DPoint(0, 0, 0); //The first vertex of your cuboid
   My3DBox input3DBox = new My3DBox(origin, 100,150 ,300);
-  // For scale
-  float[] point =  matrixProduct(scaleMatrix(x/xPressed, y/yPressed, 1), {100, 150, 300, 1});
   
-  projectBox(eye, new my3DBox(origin, point[1], point[2], point[3])).render();
+  // float[] point =  matrixProduct(scaleMatrix(x/xPressed, y/yPressed, 1.0), {100, 150, 300, 1});
+  
+  float[] point = matrixProduct(scaleMatrix(x/xPressed, y/yPressed, 1.0), new float[] {100, 150, 300, 1});
+  
+  projectBox(eye, new My3DBox(origin, point[0], point[1], point[2])).render();
 }
 
 class My2DPoint {
