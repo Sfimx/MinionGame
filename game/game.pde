@@ -19,7 +19,6 @@ float CYLINDER_BASE_SIZE = 25;
 
 float MAX_ANGLE = PI/3;
 PShape cylinder;
-float travelingAngle = 0;
 Boolean editMode = false;
 boolean editModeAnimation = false;
 boolean leaveEditModeAnimation = false;
@@ -41,15 +40,16 @@ void setup() {
   cylinder = new Cylinder(CYLINDER_BASE_SIZE, CYLINDER_HEIGHT).getCylinder();
   all_cylinders = new ArrayList<PVector>();
   editorCylinder = new PVector();
+  editorCylinder.z = -BOX_HEIGHT/2-CYLINDER_HEIGHT;
   eyeZ = (height/2.0)/tan(radians(30));
 }
 
 void draw() {
   //background(100, 220, 220);
- 
-  
+
+
   background(255);
-  
+
   lights();
   camera(
     0, eyeY, eyeZ, 
@@ -58,7 +58,7 @@ void draw() {
   );
 
   if (!editMode) {//game mode 
-  //USER INPUT
+    //USER INPUT
     rotateX(rotateX);
     rotateY(rotateY);
     rotateZ(rotateZ);    
@@ -67,7 +67,7 @@ void draw() {
     mover.checkEdges();
     mover.checkCylinderCollision(all_cylinders, CYLINDER_BASE_SIZE, SPHERE_RADIUS);
   } 
-  
+
   if (editModeAnimation || leaveEditModeAnimation) {
     if ((editModeAnimation && editModeAnimationAngle <=1) || (leaveEditModeAnimation && editModeAnimationAngle > 0)) {
       if (editModeAnimation) {
@@ -82,10 +82,9 @@ void draw() {
     } else {
       editModeAnimation = false;
       leaveEditModeAnimation = false;
-      //editMode = !editMode;
     }
   }
-  
+
   fill(220, 220, 250);
   box(BOX_SIZE, BOX_HEIGHT, BOX_SIZE);
   //drawAxis();
@@ -105,9 +104,11 @@ void mousePressed() {
   }
 }
 
-void mouseDragged() {   
-  rotateX = max(min(originRotateX+MAX_ANGLE*rotateSpeed*((originClickY - pmouseY)/displayWidth), MAX_ANGLE), -MAX_ANGLE);
-  rotateZ = max(min(originRotateZ-MAX_ANGLE*rotateSpeed*((originClickX - pmouseX)/displayHeight), MAX_ANGLE), -MAX_ANGLE);
+void mouseDragged() { 
+  if (!editMode) {  
+    rotateX = max(min(originRotateX+MAX_ANGLE*rotateSpeed*((originClickY - pmouseY)/displayWidth), MAX_ANGLE), -MAX_ANGLE);
+    rotateZ = max(min(originRotateZ-MAX_ANGLE*rotateSpeed*((originClickX - pmouseX)/displayHeight), MAX_ANGLE), -MAX_ANGLE);
+  }
 }
 
 void mouseWheel(MouseEvent e) {
@@ -123,12 +124,11 @@ void mouseClicked() {
 }
 
 void mouseMoved() { 
-  if (editMode) { 
+  //if (editMode) { 
     editorCylinder.x = mouseX-width/2;
-    editorCylinder.y = -(mouseY-height/2);
-    editorCylinder.z = -BOX_HEIGHT/2-CYLINDER_HEIGHT; 
-    println(editorCylinder);
-  }
+    editorCylinder.y = -(mouseY-height/2); 
+    //println(editorCylinder);
+  //}
 }
 
 void drawObstacles() {
@@ -137,7 +137,7 @@ void drawObstacles() {
     drawCylinderAt(obstacleCenter);
   }
   if (editMode) {//"draw a cylinder on the mouse"
-    if (onPlate(editorCylinder.x, editorCylinder.z))
+    if (onPlate(editorCylinder.x, editorCylinder.y))
       cylinder.setFill(color(0, 255, 0));//green if ok
     else
       cylinder.setFill(color(255, 0, 0));//red if ko
@@ -191,8 +191,6 @@ void keyPressed() {
     leaveEditModeAnimation = false;
     //cursor(HAND);
     noCursor();
-    if (travelingAngle<PI/2)
-      travelingAngle+=angle;  //anime camera motion ("traveling")
     break;
   }
 }
@@ -204,7 +202,6 @@ void keyReleased() {
     editModeAnimation = false;
     leaveEditModeAnimation = true;
     cursor(ARROW);
-    travelingAngle=0; //reset traveling/animation angle
     break;
   }
 }
