@@ -26,7 +26,7 @@ boolean leaveEditModeAnimation = false;
 float editModeAnimationAngle = 0;
 
 float eyeY = 0;
-float eyeZ = (height/2.0) / tan(PI*30.0 / 180.0);
+float eyeZ = (height/2.0)/tan(radians(30));
 
 Mover mover;
 
@@ -53,9 +53,9 @@ void draw() {
     0, 0, 0, 
     0, 1, 1 
   );
-  if(!editMode) {//game mode     
-
-    //USER INPUT
+  
+  if (!editMode) {//game mode 
+  //USER INPUT
     rotateX(rotateX);
     rotateY(rotateY);
     rotateZ(rotateZ);    
@@ -64,21 +64,18 @@ void draw() {
     mover.checkEdges();
     mover.checkCylinderCollision(all_cylinders, CYLINDER_BASE_SIZE, SPHERE_RADIUS);
   } 
-  
+
   if (editModeAnimation || leaveEditModeAnimation) {
-    if ((editModeAnimation && editModeAnimationAngle <1) || (leaveEditModeAnimation && editModeAnimationAngle > 0)) {
+    if ((editModeAnimation && editModeAnimationAngle <=1) || (leaveEditModeAnimation && editModeAnimationAngle > 0)) {
       if (editModeAnimation) {
         editModeAnimationAngle += 0.05;
       } else {
         editModeAnimationAngle -= 0.05;
       }
-
-
       if (editModeAnimationAngle >= 1) editModeAnimationAngle = 1;
       if (editModeAnimationAngle <= 0) editModeAnimationAngle = 0;
-
-      eyeZ = (( (height/2.0) / tan(PI*30.0 / 180.0) ) * (1-editModeAnimationAngle))+200;
-      eyeY =  height/2 - editModeAnimationAngle * (height/2 / tan(radians(30)) + BOX_HEIGHT/2);
+      eyeZ = ( (height/2.0) / tan(PI*30.0 / 180.0) ) * (1-editModeAnimationAngle);
+      eyeY =  -editModeAnimationAngle * (height/2 / tan(radians(30)) + BOX_HEIGHT/2);
     } else {
       editModeAnimation = false;
       leaveEditModeAnimation = false;
@@ -180,15 +177,15 @@ void keyPressed() {
   //println(keyCode);
   float angle = PI/20;
   switch(keyCode) {
-//  case LEFT:
-//    angle = -angle;
-//  case RIGHT:
-//    rotateY = rotateY + angle;
-//    break;
+    //  case LEFT:
+    //    angle = -angle;
+    //  case RIGHT:
+    //    rotateY = rotateY + angle;
+    //    break;
   case SHIFT:
     editMode = true;          //enter edit mode
     editModeAnimation = true;
-      leaveEditModeAnimation = false;
+    leaveEditModeAnimation = false;
     //cursor(HAND);
     noCursor();
     if (travelingAngle<PI/2)
