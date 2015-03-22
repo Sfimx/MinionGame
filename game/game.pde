@@ -138,9 +138,9 @@ void drawObstacles() {
   }
   if (editMode) {//"draw a cylinder on the mouse"
     if (onPlate(editorCylinder.x, editorCylinder.y))
-      cylinder.setFill(color(0, 255, 0));//green if ok
+      cylinder.setFill(color(0, 255, 0, 100));//green if ok
     else
-      cylinder.setFill(color(255, 0, 0));//red if ko
+      cylinder.setFill(color(255, 0, 0, 100));//red if ko
     drawCylinderAt(editorCylinder);
   }
 }
