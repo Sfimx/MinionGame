@@ -70,7 +70,7 @@ void draw() {
   mover.display(SPHERE_RADIUS);
   noFill();
   drawObstacles();
-  drawInfo();
+  //drawInfo();
 }
 
 void mousePressed() {
@@ -158,11 +158,11 @@ void keyPressed() {
   //println(keyCode);
   float angle = PI/20;
   switch(keyCode) {
-  case LEFT:
-    angle = -angle;
-  case RIGHT:
-    rotateY = rotateY + angle;
-    break;
+//  case LEFT:
+//    angle = -angle;
+//  case RIGHT:
+//    rotateY = rotateY + angle;
+//    break;
   case SHIFT:
     editMode = true;          //enter edit mode
     //cursor(HAND);
