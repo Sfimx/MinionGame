@@ -21,6 +21,13 @@ float MAX_ANGLE = PI/3;
 PShape cylinder;
 float travelingAngle = 0;
 Boolean editMode;
+boolean editModeAnimation = false;
+boolean leaveEditModeAnimation = false;
+float editModeAnimationAngle = 0;
+
+float eyeY = 0;
+float eyeZ = (height/2.0) / tan(PI*30.0 / 180.0);
+
 Mover mover;
 
 ArrayList<PVector> all_cylinders;
@@ -41,18 +48,12 @@ void draw() {
   //background(100, 220, 220);
   background(255);
   lights();
-  if (editMode) {
-    camera(
-    0, -sin(travelingAngle)*(height/2.0)/tan(radians(30)), cos(travelingAngle)*(height/2.0)/tan(radians(30)), 
+  camera(
+    0, eyeY, eyeZ, 
     0, 0, 0, 
-    0, 0, 1    
-      );
-  } else {//game mode     
-    camera(
-    0, 0, (height/2.0)/tan(radians(30)), //eye position at "origin" ("right" where our real eyes are ^^)
-    0, 0, 0, //center of scene (origin)
-    0, 1, 0                                              //y axis up
-    );
+    0, 1, 1 
+  );
+  if(!editMode) {//game mode     
 
     //USER INPUT
     rotateX(rotateX);
@@ -63,6 +64,27 @@ void draw() {
     mover.checkEdges();
     mover.checkCylinderCollision(all_cylinders, CYLINDER_BASE_SIZE, SPHERE_RADIUS);
   } 
+  
+  if (editModeAnimation || leaveEditModeAnimation) {
+    if ((editModeAnimation && editModeAnimationAngle <1) || (leaveEditModeAnimation && editModeAnimationAngle > 0)) {
+      if (editModeAnimation) {
+        editModeAnimationAngle += 0.05;
+      } else {
+        editModeAnimationAngle -= 0.05;
+      }
+
+
+      if (editModeAnimationAngle >= 1) editModeAnimationAngle = 1;
+      if (editModeAnimationAngle <= 0) editModeAnimationAngle = 0;
+
+      eyeZ = (( (height/2.0) / tan(PI*30.0 / 180.0) ) * (1-editModeAnimationAngle))+200;
+      eyeY =  height/2 - editModeAnimationAngle * (height/2 / tan(radians(30)) + BOX_HEIGHT/2);
+    } else {
+      editModeAnimation = false;
+      leaveEditModeAnimation = false;
+      //editMode = !editMode;
+    }
+  }
 
   fill(220, 220, 250);
   box(BOX_SIZE, BOX_HEIGHT, BOX_SIZE);
@@ -165,6 +187,8 @@ void keyPressed() {
 //    break;
   case SHIFT:
     editMode = true;          //enter edit mode
+    editModeAnimation = true;
+      leaveEditModeAnimation = false;
     //cursor(HAND);
     noCursor();
     if (travelingAngle<PI/2)
@@ -177,6 +201,8 @@ void keyReleased() {
   switch(keyCode) {
   case SHIFT:
     editMode = false; //quit edit mode
+    editModeAnimation = false;
+    leaveEditModeAnimation = true;
     cursor(ARROW);
     travelingAngle=0; //reset traveling/animation angle
     break;
