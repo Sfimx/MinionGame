@@ -22,7 +22,6 @@ class Cylinder {
     closedCylinder = createShape(GROUP);   
     
       openCylinder = createShape();
-      //openCylinder.setFill(color(200));
       openCylinder.beginShape(QUAD_STRIP);
       openCylinder.noStroke();
       //draw the border of the cylinder

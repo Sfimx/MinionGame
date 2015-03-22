@@ -181,7 +181,6 @@ boolean onPlate(float x, float y) {
 }
 
 void keyPressed() {
-  //println(keyCode);
   float angle = PI/20;
   switch(keyCode) {
   case SHIFT:
