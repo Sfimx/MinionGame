@@ -11,7 +11,7 @@ float rotateSpeed = 4;
 int WIDTH = 900;
 int HEIGHT = 700;
 
-float BOX_SIZE = WIDTH/2;
+float BOX_SIZE;
 float BOX_HEIGHT = 15;
 float SPHERE_RADIUS = 15;
 float CYLINDER_HEIGHT = 50;
@@ -35,6 +35,7 @@ PVector editorCylinder;
 
 void setup() {
   size(WIDTH, HEIGHT, P3D);
+  BOX_SIZE = (height / 2 > width) ? width / 2 : height / 2;
   noStroke();
   mover = new Mover(BOX_SIZE); 
   cylinder = new Cylinder(CYLINDER_BASE_SIZE, CYLINDER_HEIGHT).getCylinder();
