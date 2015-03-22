@@ -179,7 +179,10 @@ void drawAxis() {
 }
 
 boolean onPlate(float x, float y) {
-  return x>=-BOX_SIZE/2 && x<=BOX_SIZE/2 && y>=-BOX_SIZE/2 && y<=BOX_SIZE/2;
+  return x>=-BOX_SIZE/2+CYLINDER_BASE_SIZE && 
+         x<=BOX_SIZE/2-CYLINDER_BASE_SIZE && 
+         y>=-BOX_SIZE/2+CYLINDER_BASE_SIZE &&
+         y<=BOX_SIZE/2-CYLINDER_BASE_SIZE;
 }
 
 void keyPressed() {
