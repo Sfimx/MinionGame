@@ -68,6 +68,10 @@ class Mover {
       location.y = - bound/2;
     }
   }
+  
+  PVector ballLocation() {
+   return location.get(); // make a copy
+  }
 
   void checkCylinderCollision(ArrayList<PVector> cylinderCenters, float cylinderRadius, float sphereRadius) {
     for (PVector center : cylinderCenters) {

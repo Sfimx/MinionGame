@@ -22,6 +22,7 @@ PShape cylinder;
 Boolean editMode = false;
 boolean editModeAnimation = false;
 boolean leaveEditModeAnimation = false;
+boolean validPosition = false;
 float editModeAnimationAngle = 0;
 
 float eyeY = 0;
@@ -119,7 +120,7 @@ void mouseWheel(MouseEvent e) {
 }
 
 void mouseClicked() {
-  if (editMode && onPlate(editorCylinder.x, editorCylinder.y)) {
+  if (editMode && validPosition) {
     all_cylinders.add(new PVector(editorCylinder.x, editorCylinder.y, editorCylinder.z));
   }
 }
@@ -138,10 +139,20 @@ void drawObstacles() {
     drawCylinderAt(obstacleCenter);
   }
   if (editMode) {//"draw a cylinder on the mouse"
-    if (onPlate(editorCylinder.x, editorCylinder.y))
-      cylinder.setFill(color(0, 255, 0, 100));//green if ok
+    color cylinderColor;
+    PVector cursorPosition = new PVector(editorCylinder.x, editorCylinder.y, 0);
+    float distance = mover.ballLocation().dist(cursorPosition);
+    
+    boolean onPlate = onPlate(editorCylinder.x, editorCylinder.y);
+    boolean enoughDistance = distance >= SPHERE_RADIUS + CYLINDER_BASE_SIZE;
+    validPosition = onPlate & enoughDistance; 
+
+    if(validPosition)
+      cylinderColor = color(0, 255, 0, 100); //green if ok
     else
-      cylinder.setFill(color(255, 0, 0, 100));//red if ko
+      cylinderColor = color(255, 0, 0, 100); //red if ko
+    
+    cylinder.setFill(cylinderColor);
     drawCylinderAt(editorCylinder);
   }
 }
