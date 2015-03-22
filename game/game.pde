@@ -20,13 +20,13 @@ float CYLINDER_BASE_SIZE = 25;
 float MAX_ANGLE = PI/3;
 PShape cylinder;
 float travelingAngle = 0;
-Boolean editMode;
+Boolean editMode = false;
 boolean editModeAnimation = false;
 boolean leaveEditModeAnimation = false;
 float editModeAnimationAngle = 0;
 
 float eyeY = 0;
-float eyeZ = (height/2.0)/tan(radians(30));
+float eyeZ = 0;
 
 Mover mover;
 
@@ -41,19 +41,22 @@ void setup() {
   cylinder = new Cylinder(CYLINDER_BASE_SIZE, CYLINDER_HEIGHT).getCylinder();
   all_cylinders = new ArrayList<PVector>();
   editorCylinder = new PVector();
-  editMode = false;
+  eyeZ = (height/2.0)/tan(radians(30));
 }
 
 void draw() {
   //background(100, 220, 220);
+ 
+  
   background(255);
+  
   lights();
   camera(
     0, eyeY, eyeZ, 
     0, 0, 0, 
     0, 1, 1 
   );
-  
+
   if (!editMode) {//game mode 
   //USER INPUT
     rotateX(rotateX);
@@ -64,7 +67,7 @@ void draw() {
     mover.checkEdges();
     mover.checkCylinderCollision(all_cylinders, CYLINDER_BASE_SIZE, SPHERE_RADIUS);
   } 
-
+  
   if (editModeAnimation || leaveEditModeAnimation) {
     if ((editModeAnimation && editModeAnimationAngle <=1) || (leaveEditModeAnimation && editModeAnimationAngle > 0)) {
       if (editModeAnimation) {
@@ -82,7 +85,7 @@ void draw() {
       //editMode = !editMode;
     }
   }
-
+  
   fill(220, 220, 250);
   box(BOX_SIZE, BOX_HEIGHT, BOX_SIZE);
   //drawAxis();
