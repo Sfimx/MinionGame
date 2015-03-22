@@ -51,8 +51,8 @@ void draw() {
 
   lights();
   camera(
-    0, eyeY, eyeZ, 
-    0, 0, 0, 
+    0, eyeY, eyeZ,     //eye position, begins at "origin"  "right where our real eyes are"
+    0, 0, 0,           //origin of scene
     0, 1, 1 
   );
 
@@ -67,6 +67,7 @@ void draw() {
     mover.checkCylinderCollision(all_cylinders, CYLINDER_BASE_SIZE, SPHERE_RADIUS);
   } 
 
+  //animation when entering edit mode
   if (editModeAnimation || leaveEditModeAnimation) {
     if ((editModeAnimation && editModeAnimationAngle <=1) || (leaveEditModeAnimation && editModeAnimationAngle > 0)) {
       if (editModeAnimation) {
@@ -110,7 +111,8 @@ void mouseDragged() {
 
 void mouseWheel(MouseEvent e) {
   if (!editMode) {
-    rotateSpeed = max(min(rotateSpeed+e.getCount()*0.1, 8), 0);
+    //rotate speed vary between [0;8], 0 impossible to tilt the plane
+    rotateSpeed = max(min(rotateSpeed+e.getCount()*0.1, 8), 0); 
   }
 }
 
