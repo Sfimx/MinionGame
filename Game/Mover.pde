@@ -76,8 +76,6 @@ class Mover {
   void checkCylinderCollision(ArrayList<PVector> cylinderCenters, float cylinderRadius, float sphereRadius) {
     for (PVector center : cylinderCenters) {
       PVector newCenter = new PVector(center.x, center.y, 0);      //"place center on the same plan/coord systeme than the ball is on"
-      //println("ball : "+location+" / center : "+center);
-      //println(center.dist(location)+" VS "+cylinderRadius+sphereRadius);
       if (newCenter.dist(location)<=cylinderRadius+sphereRadius)
       {
         println("COLLISION");

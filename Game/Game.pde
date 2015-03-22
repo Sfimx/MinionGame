@@ -47,9 +47,6 @@ void setup() {
 }
 
 void draw() {
-  //background(100, 220, 220);
-
-
   background(255);
 
   lights();
@@ -89,11 +86,9 @@ void draw() {
 
   fill(220, 220, 250);
   box(BOX_SIZE, BOX_HEIGHT, BOX_SIZE);
-  //drawAxis();
   mover.display(SPHERE_RADIUS);
   noFill();
   drawObstacles();
-  //drawInfo();
 }
 
 void mousePressed() {
@@ -125,12 +120,9 @@ void mouseClicked() {
   }
 }
 
-void mouseMoved() { 
-  //if (editMode) { 
-    editorCylinder.x = mouseX-width/2;
-    editorCylinder.y = -(mouseY-height/2); 
-    //println(editorCylinder);
-  //}
+void mouseMoved() {  
+  editorCylinder.x = mouseX-width/2;
+  editorCylinder.y = -(mouseY-height/2);
 }
 
 void drawObstacles() {
@@ -192,16 +184,10 @@ void keyPressed() {
   //println(keyCode);
   float angle = PI/20;
   switch(keyCode) {
-    //  case LEFT:
-    //    angle = -angle;
-    //  case RIGHT:
-    //    rotateY = rotateY + angle;
-    //    break;
   case SHIFT:
     editMode = true;          //enter edit mode
     editModeAnimation = true;
     leaveEditModeAnimation = false;
-    //cursor(HAND);
     noCursor();
     break;
   }
