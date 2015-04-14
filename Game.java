@@ -311,8 +311,9 @@ public class Game extends PApplet {
 
         public void draw() {
             context.beginDraw();
+            context.noStroke();
             context.background(0);
-            context.fill(0);
+            context.fill(128);
             context.rect(0, 0, width, 200);
             context.endDraw();
         }
