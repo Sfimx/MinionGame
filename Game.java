@@ -310,7 +310,6 @@ public class Game extends PApplet {
         }
 
         public void draw() {
-            println(context);
             context.beginDraw();
             context.background(0);
             context.fill(0);
