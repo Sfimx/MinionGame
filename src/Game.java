@@ -45,7 +45,8 @@ public class Game extends PApplet {
 
     int DASHBOARD_HEIGHT = 200;
     Dashboard dashboard;
-
+    
+    TopView topView; 
 
     public void setup() {
         size(WIDTH, HEIGHT, P3D);
@@ -59,6 +60,7 @@ public class Game extends PApplet {
         eyeZ = (height/2.0f)/tan(radians(30));
 
         dashboard = new Dashboard(width, DASHBOARD_HEIGHT);
+        topView = new TopView(3); 
     }
 
     public void draw() {
@@ -76,8 +78,11 @@ public class Game extends PApplet {
 
             dashboard.draw();
             image(dashboard.context, -width/2, height/2-200);
-
-
+            
+            //create the topView
+            topView.drawTopView(mover); 
+            image(topView.topView, -width/2, height/2-200);
+          
             popMatrix();
         }
 
@@ -315,7 +320,7 @@ public class Game extends PApplet {
             context.background(0);
             context.fill(128);
             context.rect(0, 0, width, 200);
-            context.endDraw();
+            context.endDraw(); 
         }
     }
 
@@ -406,6 +411,54 @@ public class Game extends PApplet {
                 }
             }
         }
+    }
+    
+    class TopView {
+
+    	  PVector location;
+    	  PGraphics topView;
+    	  int scale; 
+    	  int size; 
+    	  
+    	   TopView(int scale) {
+    		   this.scale = scale; 
+    		   location = new PVector();
+    		   this.size = Math.round(BOX_SIZE / scale);
+    		   topView  = createGraphics(size , size, P2D);
+
+    	  }
+    	 
+    	  private PVector translateCoordonates(PVector position) {
+    		 PVector translatedPosition = new PVector(); 
+    		 translatedPosition.x = (position.x + BOX_SIZE/2)/scale; 
+    		 translatedPosition.y = (-position.y + BOX_SIZE/2)/scale; 
+    		 
+    		 return translatedPosition; 
+    	  }
+    	  
+    	  public void update(Mover mover) { 
+    	    location = translateCoordonates(mover.location); 
+    	  } 
+    	  
+    	  public void drawCylinders() { 
+    		  for (PVector obstacleCenter : all_cylinders) {  
+    			  PVector translatedPosition = translateCoordonates(obstacleCenter); 
+    			  topView.fill(color(255, 0, 0)); 
+    			  topView.ellipse(translatedPosition.x, translatedPosition.y, 2 * CYLINDER_BASE_SIZE/scale, 2 * CYLINDER_BASE_SIZE/scale);
+    		  }
+    	  }
+    	 
+    	  public void drawTopView(Mover mover) { 
+    		float rayon = SPHERE_RADIUS/scale; 
+    	    topView.beginDraw();
+    	    topView.background(0); 
+    	    topView.noStroke();
+    	    update(mover);
+    	    drawCylinders();
+    	    topView.fill(255); 
+    	    topView.ellipse(location.x, location.y, 2*rayon, 2*rayon);  
+    	    topView.endDraw(); 
+    	 }	  
     }
 
     static public void main(String[] passedArgs) {
