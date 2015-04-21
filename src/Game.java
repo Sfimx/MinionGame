@@ -60,7 +60,7 @@ public class Game extends PApplet {
         eyeZ = (height/2.0f)/tan(radians(30));
 
         dashboard = new Dashboard(width, DASHBOARD_HEIGHT);
-        topView = new TopView(3); 
+        topView = new TopView(Math.round(BOX_SIZE/2)); 
     }
 
     public void draw() {
@@ -76,12 +76,13 @@ public class Game extends PApplet {
         if(!editMode && !leaveEditModeAnimation && !editModeAnimation) {
             pushMatrix();
 
-            dashboard.draw();
+            topView.drawTopView(mover);
+            dashboard.draw(topView.topView);
             image(dashboard.context, -width/2, height/2-200);
             
             //create the topView
-            topView.drawTopView(mover); 
-            image(topView.topView, -width/2, height/2-200);
+           //  
+            //image(topView.topView, -width/2 + 10, height/2-200 + 10);
           
             popMatrix();
         }
@@ -307,19 +308,23 @@ public class Game extends PApplet {
             return closedCylinder;
         }
     }
+    
     class Dashboard {
         public PGraphics context;
+        int central; 
 
         Dashboard(int dashboardWidth, int dashboardHeight) {
             this.context = createGraphics(dashboardWidth, dashboardHeight, P2D);
         }
 
-        public void draw() {
+        public void draw(PGraphics topView) {
+        	central = (context.height - topView.height)/2;
             context.beginDraw();
             context.noStroke();
             context.background(0);
             context.fill(128);
             context.rect(0, 0, width, 200);
+            context.image(topView, central, central);
             context.endDraw(); 
         }
     }
@@ -420,18 +425,18 @@ public class Game extends PApplet {
     	  int scale; 
     	  int size; 
     	  
-    	   TopView(int scale) {
-    		   this.scale = scale; 
+    	   TopView(int size) {
+    		   this.size = size; 
     		   location = new PVector();
-    		   this.size = Math.round(BOX_SIZE / scale);
+    		   this.scale = Math.round(BOX_SIZE/size);
     		   topView  = createGraphics(size , size, P2D);
 
     	  }
     	 
     	  private PVector translateCoordonates(PVector position) {
     		 PVector translatedPosition = new PVector(); 
-    		 translatedPosition.x = (position.x + BOX_SIZE/2)/scale; 
-    		 translatedPosition.y = (-position.y + BOX_SIZE/2)/scale; 
+    		 translatedPosition.x = position.x/scale+ size/2; 
+    		 translatedPosition.y = -position.y/scale + size/2; 
     		 
     		 return translatedPosition; 
     	  }
