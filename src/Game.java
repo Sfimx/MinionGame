@@ -48,6 +48,7 @@ public class Game extends PApplet {
     Dashboard dashboard;
     TopView topView; 
     Scoreboard scoreboard; 
+    BarChart barChart; 
     
     //List with all the PGraphics that should be on the dashboard
     ArrayList<Element> elements; 
@@ -67,8 +68,10 @@ public class Game extends PApplet {
         dashboard = new Dashboard(width, DASHBOARD_HEIGHT, elements);
         topView = new TopView(Math.round(BOX_SIZE/2), mover); 
         elements.add(topView);
-        scoreboard = new Scoreboard(Math.round(BOX_SIZE/2), mover);
-        elements.add(scoreboard); 
+        scoreboard = new Scoreboard(Math.round(BOX_SIZE/3), Math.round(BOX_SIZE/2), mover);
+        elements.add(scoreboard);
+        barChart = new BarChart(width - Math.round(BOX_SIZE), Math.round(BOX_SIZE/2), scoreboard);
+        elements.add(barChart);
     }
 
     public void draw() {
@@ -509,26 +512,27 @@ public class Game extends PApplet {
   }
     
     class Scoreboard extends Element{
+    	
    	 private PGraphics context;
    	 private Mover mover; 
    	 private float totalScore = 0; 
    	 private PVector oldLocation;
    	 private float lastScore = 0; 
-   	 private float gain = (float)2.76; 
-   	 private float lose = (float)-2.76;
-   	 int size; 
+   	 private int width;
+   	 private int height; 
    	 
-   	 public Scoreboard(int size, Mover mover) {
-   		 this.size = size;
+   	 public Scoreboard(int width, int height, Mover mover) {
+   		 this.width = width;
+   		 this.height = height;
    		 this.mover= mover; 
-   		 context = createGraphics(size, size, P2D);
+   		 context = createGraphics(width, height, P2D);
    		 this.oldLocation = mover.ballLocation(); 
    	 }
    	 
    	 public void gainPoints() {
    		 if(!oldLocation.equals(mover.location)){
-   			 totalScore = totalScore + gain; 
-   			 lastScore = gain; 
+   			 totalScore = totalScore + mover.velocity.magSq();  
+   			 lastScore = mover.velocity.magSq(); 
    			 mover.velocity.x += Math.signum((float)mover.velocity.x);
    			 mover.velocity.y += Math.signum((float)mover.velocity.y);
    			 oldLocation = mover.ballLocation();
@@ -537,14 +541,18 @@ public class Game extends PApplet {
    	 
    	 public void losePoints() { 
    		 if(!oldLocation.equals(mover.location)){
-   			 totalScore = totalScore + lose; 
-   			 lastScore = lose; 
+   			 totalScore = totalScore - mover.velocity.magSq(); 
+   			 lastScore = - mover.velocity.magSq(); 
    			 mover.velocity.x -= Math.signum((float)mover.velocity.x);
    			 mover.velocity.y -= Math.signum((float)mover.velocity.y);
    			 oldLocation = mover.ballLocation();
    		 }
    	 }
    	 
+   	public float totalScore() {
+   		return totalScore;
+   	}
+   	
    	public PGraphics context() {
  		 return context; 
  	 }
@@ -557,19 +565,72 @@ public class Game extends PApplet {
     	    String vel= "Velocity: "; 
     	    String last = "Last score: ";
     	    context.fill(color(255, 255, 0));
-    	    context.rect(0, 0, size, size);
+    	    context.rect(0, 0, width, height);
     	    context.fill(50);
-    	    context.textSize(20);
+    	    context.textSize(17);
     	   //show score
     	    context.text(total, 10, 20);
-    	    context.text(""+totalScore, 10, 50);
+    	    context.text(""+totalScore, 10, 40);
     	    context.text(vel, 10, 80);
-    	    context.text(""+mover.velocity.magSq(), 10, 110);
+    	    context.text(""+mover.velocity.magSq(), 10, 100);
     	    context.text(last, 10, 140);
-    	    context.text(""+lastScore, 10, 170);
+    	    context.text(""+lastScore, 10, 160);
     	    context.endDraw();
    	 }
    }
+    
+    class BarChart extends Element {
+    	private PGraphics context; 
+    	private int width; 
+    	private int height; 
+    	private Scoreboard scoreboard; 
+    	private final int size = 5; 
+    	private final ArrayList<Integer> numberOfSquares = new ArrayList<Integer>(); 
+    	private int counter = 0; 
+    	
+    	public BarChart(int width, int height, Scoreboard scoreboard) {
+    		this.width = width; 
+    		this.height = height; 
+    		this.scoreboard = scoreboard; 
+    		context = createGraphics(this.width, this.height, P2D);
+    	}
+    	
+    	private void column(int index){
+    		int x = index*size; 
+    		int y = height; 
+    		context.fill(color(255,0,0));
+    		
+    		for(int i = 0; i < numberOfSquares.get(index); i++) {
+    			context.rect(x, y, size, size);
+    			y = y - size; 
+    		}
+    	}
+    	
+		@Override
+		public PGraphics context() {
+			return context; 
+		}
+
+		@Override
+		public void draw() {
+			if (counter >= 30) {
+				int toInsert; 
+				if (scoreboard.totalScore() < 0) toInsert = 0;
+				else toInsert = Math.round(scoreboard.totalScore()/40);
+				numberOfSquares.add(toInsert); 
+				counter = 0; 
+			}
+			counter++;			
+			System.out.println(counter);
+			context.beginDraw(); 
+			context.fill(100);
+			for(int i = 0; i < numberOfSquares.size(); i++){
+				column(i);
+			}
+			context.endDraw();
+		}
+    	
+    }
 
     static public void main(String[] passedArgs) {
         String[] appletArgs = new String[] { "Game" };
