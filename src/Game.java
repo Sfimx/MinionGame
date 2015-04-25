@@ -44,10 +44,14 @@ public class Game extends PApplet {
     PVector editorCylinder;
 
     int DASHBOARD_HEIGHT = 200;
+   
     Dashboard dashboard;
-    
     TopView topView; 
-
+    Scoreboard scoreboard; 
+    
+    //List with all the PGraphics that should be on the dashboard
+    ArrayList<Element> elements; 
+    
     public void setup() {
         size(WIDTH, HEIGHT, P3D);
         BOX_SIZE = (height / 2 > width) ? width / 2 : height / 2;
@@ -58,9 +62,13 @@ public class Game extends PApplet {
         editorCylinder = new PVector();
         editorCylinder.z = -BOX_HEIGHT/2-CYLINDER_HEIGHT;
         eyeZ = (height/2.0f)/tan(radians(30));
-
-        dashboard = new Dashboard(width, DASHBOARD_HEIGHT);
-        topView = new TopView(Math.round(BOX_SIZE/2)); 
+        elements = new ArrayList<Element>(); 
+        
+        dashboard = new Dashboard(width, DASHBOARD_HEIGHT, elements);
+        topView = new TopView(Math.round(BOX_SIZE/2), mover); 
+        elements.add(topView);
+        scoreboard = new Scoreboard(Math.round(BOX_SIZE/2), mover);
+        elements.add(scoreboard); 
     }
 
     public void draw() {
@@ -76,13 +84,8 @@ public class Game extends PApplet {
         if(!editMode && !leaveEditModeAnimation && !editModeAnimation) {
             pushMatrix();
 
-            topView.drawTopView(mover);
-            dashboard.draw(topView.topView);
+            dashboard.draw();
             image(dashboard.context, -width/2, height/2-200);
-            
-            //create the topView
-           //  
-            //image(topView.topView, -width/2 + 10, height/2-200 + 10);
           
             popMatrix();
         }
@@ -113,7 +116,6 @@ public class Game extends PApplet {
                 eyeZ = ( (height/2.0f) / tan(PI*30.0f / 180.0f) ) * (1-editModeAnimationAngle);
                 eyeY =  -editModeAnimationAngle * (height/2 / tan(radians(30)) + BOX_HEIGHT/2);
             } else {
-                println("at the end");
                 editMode = editModeAnimation;
                 editModeAnimation = false;
                 leaveEditModeAnimation = false;
@@ -223,7 +225,7 @@ public class Game extends PApplet {
     }
 
     public void keyPressed() {
-        float angle = PI/20;
+      //  float angle = PI/20;
         switch(keyCode) {
             case SHIFT:
                 editModeAnimation = true;
@@ -247,7 +249,7 @@ public class Game extends PApplet {
 
     class Cylinder {
 
-        final int cylinderResolution = 5;
+        final int cylinderResolution = 30;
 
         private PShape closedCylinder = new PShape();
         private PShape openCylinder = new PShape();
@@ -308,23 +310,36 @@ public class Game extends PApplet {
             return closedCylinder;
         }
     }
-    
+
     class Dashboard {
         public PGraphics context;
-        int central; 
+        private int distance; 
+        private int xPosition; 
+        private int yPosition; 
+        ArrayList<Element> elements;
 
-        Dashboard(int dashboardWidth, int dashboardHeight) {
+        Dashboard(int dashboardWidth, int dashboardHeight, ArrayList<Element> elements) {
             this.context = createGraphics(dashboardWidth, dashboardHeight, P2D);
+            this.elements = elements;
+            distance = Math.round((context.height - (BOX_SIZE/2))/2);
+            xPosition = distance ; 
+            yPosition = distance; 
         }
 
-        public void draw(PGraphics topView) {
-        	central = (context.height - topView.height)/2;
+        public void draw() {
+        	for (Element e : elements) {	
+            	e.draw();
+            }
             context.beginDraw();
             context.noStroke();
             context.background(0);
             context.fill(128);
             context.rect(0, 0, width, 200);
-            context.image(topView, central, central);
+            for (Element e : elements) {	
+	            context.image(e.context(), xPosition , yPosition);
+	            xPosition = xPosition + distance + e.context().width;
+            }
+            xPosition = distance; 
             context.endDraw(); 
         }
     }
@@ -377,27 +392,35 @@ public class Game extends PApplet {
             sphere(radius);
             popMatrix();
         }
+        
+        public PVector ballLocation() {
+            return location.get(); // make a copy
+        }
 
         public void checkEdges() {
             if (location.x >= bound/2) {
                 velocity.x *= -bounceFactor;
                 location.x = bound/2;
+                //Update the points on the scoreboard
+                scoreboard.losePoints();
             } else if (location.x <= -bound/2) {
                 velocity.x *= -bounceFactor;
                 location.x = -bound/2;
+                //Update the points on the scoreboard
+                scoreboard.losePoints();
             }
 
             if (location.y >= bound/2) {
                 velocity.y *= -bounceFactor;
                 location.y = bound/2;
+                //Update the points on the scoreboard
+                scoreboard.losePoints();
             } else if (location.y <= -bound/2) {
                 velocity.y *= -bounceFactor;
                 location.y = - bound/2;
+                //Update the points on the scoreboard
+                scoreboard.losePoints();
             }
-        }
-
-        public PVector ballLocation() {
-            return location.get(); // make a copy
         }
 
         public void checkCylinderCollision(ArrayList<PVector> cylinderCenters, float cylinderRadius, float sphereRadius) {
@@ -412,59 +435,133 @@ public class Game extends PApplet {
                     velocity.sub(PVector.mult(normal, 2*v1_dot_normal));
                     velocity.mult(bounceFactor);
                     location = PVector.add(newCenter, PVector.mult(normal, cylinderRadius+sphereRadius));//prevent the ball from being trapped in a cylinder + the cylinder from being traversed by ball
+                    //Update the scoreboard
+                    scoreboard.gainPoints();
                     checkEdges();
                 }
             }
         }
     }
     
-    class TopView {
-
-    	  PVector location;
-    	  PGraphics topView;
-    	  int scale; 
-    	  int size; 
-    	  
-    	   TopView(int size) {
-    		   this.size = size; 
-    		   location = new PVector();
-    		   this.scale = Math.round(BOX_SIZE/size);
-    		   topView  = createGraphics(size , size, P2D);
-
-    	  }
-    	 
-    	  private PVector translateCoordonates(PVector position) {
-    		 PVector translatedPosition = new PVector(); 
-    		 translatedPosition.x = position.x/scale+ size/2; 
-    		 translatedPosition.y = -position.y/scale + size/2; 
-    		 
-    		 return translatedPosition; 
-    	  }
-    	  
-    	  public void update(Mover mover) { 
-    	    location = translateCoordonates(mover.location); 
-    	  } 
-    	  
-    	  public void drawCylinders() { 
-    		  for (PVector obstacleCenter : all_cylinders) {  
-    			  PVector translatedPosition = translateCoordonates(obstacleCenter); 
-    			  topView.fill(color(255, 0, 0)); 
-    			  topView.ellipse(translatedPosition.x, translatedPosition.y, 2 * CYLINDER_BASE_SIZE/scale, 2 * CYLINDER_BASE_SIZE/scale);
-    		  }
-    	  }
-    	 
-    	  public void drawTopView(Mover mover) { 
-    		float rayon = SPHERE_RADIUS/scale; 
-    	    topView.beginDraw();
-    	    topView.background(0); 
-    	    topView.noStroke();
-    	    update(mover);
-    	    drawCylinders();
-    	    topView.fill(255); 
-    	    topView.ellipse(location.x, location.y, 2*rayon, 2*rayon);  
-    	    topView.endDraw(); 
-    	 }	  
+    /**
+     * Elements that should be added on the dashboard
+     *
+     */
+    abstract class Element {
+    	/**
+         * @return the PGraphics context of the element
+      	 */
+    	public abstract PGraphics context(); 
+    	public abstract void draw();
     }
+    
+    
+    class TopView extends Element{
+
+  	  private PVector location;
+  	  private Mover mover; 
+  	  private PGraphics context;
+  	  private int scale; 
+  	  public int size; 
+  	  
+  	  public TopView(int size, Mover mover) {
+  		   this.size = size; 
+  		   this.mover = mover;
+  		   this.scale = Math.round(BOX_SIZE/size);
+  		   location = new PVector();
+  		   context  = createGraphics(size , size, P2D);
+  	  }
+  	 
+  	  private PVector translateCoordonates(PVector position) {
+  		 PVector translatedPosition = new PVector(); 
+  		 translatedPosition.x = position.x/scale+ size/2; 
+  		 translatedPosition.y = -position.y/scale + size/2; 
+  		 return translatedPosition; 
+  	  }
+
+  	  private void update() { 
+  	    location = translateCoordonates(mover.location); 
+  	  } 
+  	  
+  	  private void drawCylinders() { 
+  		  for (PVector obstacleCenter : all_cylinders) {  
+  			  PVector translatedPosition = translateCoordonates(obstacleCenter); 
+  			  context.fill(color(255, 0, 0)); 
+  			  context.ellipse(translatedPosition.x, translatedPosition.y, 2*CYLINDER_BASE_SIZE/scale, 2*CYLINDER_BASE_SIZE/scale);
+  		  }
+  	  }
+  	  
+  	 public PGraphics context() {
+  		 return context; 
+  	 }
+  	 
+  	  public void draw() { 
+  		float rayon = SPHERE_RADIUS/scale; 
+  	    context.beginDraw();
+  	    context.background(0); 
+  	    context.noStroke();
+  	    update();
+  	    drawCylinders();
+  	    context.fill(255); 
+  	    context.ellipse(location.x, location.y, 2*rayon, 2*rayon);  
+  	    context.endDraw(); 
+  	 }	  
+  }
+    
+    class Scoreboard extends Element{
+   	 private PGraphics context;
+   	 private Mover mover; 
+   	 private float totalScore = 0; 
+   	 private float lastScore = 0; 
+   	 private float gain = (float)2.76; 
+   	 private float lose = (float)-2.76;
+   	 int size; 
+   	 
+   	 public Scoreboard(int size, Mover mover) {
+   		 this.size = size;
+   		 this.mover= mover; 
+   		 context = createGraphics(size, size, P2D);
+   	 }
+   	 
+   	 public void gainPoints() {
+   		 totalScore = totalScore + gain; 
+   		 lastScore = gain; 
+   		 mover.velocity.x += Math.signum(mover.velocity.x);
+   		 mover.velocity.y += Math.signum(mover.velocity.y);
+   	}
+   	 
+   	 public void losePoints() { 
+   		 totalScore = totalScore + lose; 
+   		 lastScore = lose; 
+   		 mover.velocity.x -= Math.signum(mover.velocity.x);
+   		 mover.velocity.y -= Math.signum(mover.velocity.y);
+   		 System.out.println(totalScore) ;
+  
+   	 }
+   	 
+   	public PGraphics context() {
+ 		 return context; 
+ 	 }
+   	 
+   	 public void draw() {
+    	    context.beginDraw(); 
+    	    context.clear();
+    	    String total = "Total score:";
+    	    String vel= "Velocity: "; 
+    	    String last = "Last score: ";
+    	    context.fill(color(255, 255, 0));
+    	     context.rect(0, 0, size, size);
+    	    context.fill(50);
+    	    context.textSize(20);
+    	    context.text(total, 10, 20);
+    	    context.text(""+totalScore, 10, 50);
+    	    context.text(vel, 10, 80);
+    	    context.text(""+mover.velocity.magSq(), 10, 110);
+    	    context.text(last, 10, 140);
+    	    context.text(""+lastScore, 10, 170);
+    	    context.endDraw();
+   	 }
+   }
 
     static public void main(String[] passedArgs) {
         String[] appletArgs = new String[] { "Game" };
