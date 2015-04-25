@@ -480,7 +480,7 @@ public class Game extends PApplet {
   	  }
 
   	  private void update() { 
-  	    location = translateCoordonates(mover.location); 
+  	    location = translateCoordonates(mover.ballLocation()); 
   	  } 
   	  
   	  private void drawCylinders() { 
@@ -512,6 +512,7 @@ public class Game extends PApplet {
    	 private PGraphics context;
    	 private Mover mover; 
    	 private float totalScore = 0; 
+   	 private PVector oldLocation;
    	 private float lastScore = 0; 
    	 private float gain = (float)2.76; 
    	 private float lose = (float)-2.76;
@@ -521,22 +522,27 @@ public class Game extends PApplet {
    		 this.size = size;
    		 this.mover= mover; 
    		 context = createGraphics(size, size, P2D);
+   		 this.oldLocation = mover.ballLocation(); 
    	 }
    	 
    	 public void gainPoints() {
-   		 totalScore = totalScore + gain; 
-   		 lastScore = gain; 
-   		 mover.velocity.x += Math.signum(mover.velocity.x);
-   		 mover.velocity.y += Math.signum(mover.velocity.y);
+   		 if(!oldLocation.equals(mover.location)){
+   			 totalScore = totalScore + gain; 
+   			 lastScore = gain; 
+   			 mover.velocity.x += Math.signum((float)mover.velocity.x);
+   			 mover.velocity.y += Math.signum((float)mover.velocity.y);
+   			 oldLocation = mover.ballLocation();
+   		 }
    	}
    	 
    	 public void losePoints() { 
-   		 totalScore = totalScore + lose; 
-   		 lastScore = lose; 
-   		 mover.velocity.x -= Math.signum(mover.velocity.x);
-   		 mover.velocity.y -= Math.signum(mover.velocity.y);
-   		 System.out.println(totalScore) ;
-  
+   		 if(!oldLocation.equals(mover.location)){
+   			 totalScore = totalScore + lose; 
+   			 lastScore = lose; 
+   			 mover.velocity.x -= Math.signum((float)mover.velocity.x);
+   			 mover.velocity.y -= Math.signum((float)mover.velocity.y);
+   			 oldLocation = mover.ballLocation();
+   		 }
    	 }
    	 
    	public PGraphics context() {
@@ -545,14 +551,16 @@ public class Game extends PApplet {
    	 
    	 public void draw() {
     	    context.beginDraw(); 
-    	    context.clear();
+    	   // context.clear();
+    	    
     	    String total = "Total score:";
     	    String vel= "Velocity: "; 
     	    String last = "Last score: ";
     	    context.fill(color(255, 255, 0));
-    	     context.rect(0, 0, size, size);
+    	    context.rect(0, 0, size, size);
     	    context.fill(50);
     	    context.textSize(20);
+    	   //show score
     	    context.text(total, 10, 20);
     	    context.text(""+totalScore, 10, 50);
     	    context.text(vel, 10, 80);
