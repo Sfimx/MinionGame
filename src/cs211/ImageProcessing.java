@@ -39,7 +39,7 @@ public class ImageProcessing extends PApplet   {
     public void setup() {
 
 
-        size(1200, 1000);
+        size(1900, 1000);
         //String[] cameras = Capture.list();
 
         /*if(cameras.length == 0) {
@@ -133,17 +133,11 @@ public class ImageProcessing extends PApplet   {
 
         background(color(255, 255, 255));
 
-
-
-
-
         int i = 0;
         int imageIndex = round((imageSelectionBar.getPos() * 4));
         imageIndex = imageIndex == images.length ? imageIndex - 1 : imageIndex;
 
         img = images[imageIndex];
-
-
 
         PImage threshold = threshold(
                 img,
@@ -155,15 +149,16 @@ public class ImageProcessing extends PApplet   {
                 maxSaturationThresholdBar.getPos() * 256
         );
         PImage blurred = convolute(blur, 99, threshold);
-        PImage intensityTreshold = threshold(blurred, 0, 256, minIntensityTresholdBar.getPos() * 255, maxIntensityTresholdBar.getPos() * 255, 0, 256);
+        PImage intensityTreshold = threshold(blurred, 0, 255f, minIntensityTresholdBar.getPos() * 255, maxIntensityTresholdBar.getPos() * 255, 0, 255f);
         PImage sobel = sobel(intensityTreshold);
 
-        image(sobel, 0, 0);
-        //image(blurred, 1200, 0);
+        image(img, 0, 0);
+        //image(blurred, 1600, 0);
 
-        ArrayList<PVector> lines = hough (sobel, 0, 0, colors[imageIndex], 180, 10, 6);
+
+        ArrayList<PVector> lines = new ArrayList<>();
+        PImage accumulator = hough(sobel, 0, 0, colors[imageIndex], 200, 10, 6, lines);
         QuadGraph quadGraph = new QuadGraph();
-        //getIntersections(lines);
         quadGraph.build(lines, img.width, img.height);
         List<int[]> cycles = quadGraph.findCycles();
 
@@ -173,72 +168,68 @@ public class ImageProcessing extends PApplet   {
         int shapeRawCount = 0;
 
         for(int[] quad : cycles) {
-            if(quad.length == 4) {
-                shapeRawCount++;
+            shapeRawCount++;
 
-                PVector l1 = lines.get(quad[0]);
-                PVector l2 = lines.get(quad[1]);
-                PVector l3 = lines.get(quad[2]);
-                PVector l4 = lines.get(quad[3]);
+            PVector l1 = lines.get(quad[0]);
+            PVector l2 = lines.get(quad[1]);
+            PVector l3 = lines.get(quad[2]);
+            PVector l4 = lines.get(quad[3]);
 
-                PVector c12 = intersection(l1, l2);
-                PVector c23 = intersection(l2, l3);
-                PVector c34 = intersection(l3, l4);
-                PVector c41 = intersection(l4, l1);
+            PVector c12 = intersection(l1, l2);
+            PVector c23 = intersection(l2, l3);
+            PVector c34 = intersection(l3, l4);
+            PVector c41 = intersection(l4, l1);
 
-                if (
-                       QuadGraph.isConvex(c12, c23, c34, c41)
-                    && QuadGraph.nonFlatQuad(c12, c23, c34, c41)
-                ) {
-                    float shapeArea = c12.dist(c23) * c12.dist(c41);
+            if (
+                   QuadGraph.isConvex(c12, c23, c34, c41)
+                && QuadGraph.nonFlatQuad(c12, c23, c34, c41)
+            ) {
+                float shapeArea = c12.dist(c23) * c12.dist(c41);
 
-                    if(shapeArea < shapeMaxArea) {
-                        continue;
-                    }
-
-                    // draw once what we keep
-                    fill(255, 128, 0);
-                    stroke(255, 128, 0);
-
-                    drawLine(l1.x, l1.y, img.width);
-                    drawLine(l2.x, l2.y, img.width);
-                    drawLine(l3.x, l3.y, img.width);
-                    drawLine(l4.x, l4.y, img.width);
-
-                    ellipse(c12.x, c12.y, 10, 10);
-                    ellipse(c23.x, c23.y, 10, 10);
-                    ellipse(c34.x, c34.y, 10, 10);
-                    ellipse(c41.x, c41.y, 10, 10);
-
-                    shapeMaxArea = shapeArea;
-                    noStroke();
-
-                    if (shapeCount >= shapeColors.size()) {
-                        Random random = new Random();
-                        int newColor = color(
-                                min(255, random.nextInt(300)),
-                                min(255, random.nextInt(300)),
-                                min(255, random.nextInt(300)),
-                                50
-                        );
-                        shapeColors.add(newColor);
-                        fill(newColor);
-                    } else {
-                        fill(shapeColors.get(shapeCount));
-                    }
-
-                    shapeCount++;
-                    quad(c12.x, c12.y, c23.x, c23.y, c34.x, c34.y, c41.x, c41.y);
-
+                if(shapeArea < shapeMaxArea) {
+                    continue;
                 }
+
+                // draw once what we keep
+                fill(255, 128, 0);
+                stroke(255, 128, 0);
+
+                drawLine(l1.x, l1.y, img.width);
+                drawLine(l2.x, l2.y, img.width);
+                drawLine(l3.x, l3.y, img.width);
+                drawLine(l4.x, l4.y, img.width);
+
+                ellipse(c12.x, c12.y, 10, 10);
+                ellipse(c23.x, c23.y, 10, 10);
+                ellipse(c34.x, c34.y, 10, 10);
+                ellipse(c41.x, c41.y, 10, 10);
+
+                shapeMaxArea = shapeArea;
+                noStroke();
+
+                if (shapeCount >= shapeColors.size()) {
+                    Random random = new Random();
+                    int newColor = color(
+                            min(255, random.nextInt(300)),
+                            min(255, random.nextInt(300)),
+                            min(255, random.nextInt(300)),
+                            50
+                    );
+                    shapeColors.add(newColor);
+                    fill(newColor);
+                } else {
+                    fill(shapeColors.get(shapeCount));
+                }
+
+                shapeCount++;
+                quad(c12.x, c12.y, c23.x, c23.y, c34.x, c34.y, c41.x, c41.y);
+
             }
         }
 
-        println("Raw count: " + shapeRawCount + ", Count: " + shapeCount);
-
-        //ArrayList<PVector> lines = hough(sobel, 0, 0, colors[imageIndex], 180, 10, 6);
-        //getIntersections(lines);
-
+        accumulator.resize(300, 600);
+        image(accumulator, 800, 0);
+        image(sobel, 1100, 0);
 
 
         maxBar.display();
@@ -255,16 +246,6 @@ public class ImageProcessing extends PApplet   {
 
         minIntensityTresholdBar.display();
         maxIntensityTresholdBar.display();
-
-
-
-
-
-        //image(sobel, 0, 0);
-
-
-
-        //println(thresholdBar.getPos() * 255);
     }
 
     public PImage convolute(float[][] kernel, float weight, PImage img) {
@@ -277,14 +258,15 @@ public class ImageProcessing extends PApplet   {
                 int kernelX;
                 int kernelY;
 
+
                 for(int xKernel = x - 1; xKernel <= x + 1; xKernel++) {
                     for(int yKernel = y - 1; yKernel <= y + 1; yKernel++) {
                         kernelX = xKernel - x + 1;
                         kernelY = yKernel - y + 1;
 
-                        int color = img.get(xKernel, yKernel);
-                        float kernelValue = kernel[kernelY][kernelX];
+                        int color = img.pixels[yKernel * img.width + xKernel];
 
+                        float kernelValue = kernel[kernelY][kernelX];
 
                         rConvolution +=  brightness(color) * kernelValue;
                     }
@@ -297,6 +279,7 @@ public class ImageProcessing extends PApplet   {
             }
         }
 
+        result.updatePixels();
         return result;
     }
 
@@ -331,6 +314,7 @@ public class ImageProcessing extends PApplet   {
                 float h = brightness(hConvoluted.pixels[y * img.width + x]);
                 float v = brightness(vConvoluted.pixels[y * img.width + x]);
 
+
                 float sum = sqrt(
                         h * h + v * v
                 );
@@ -362,7 +346,7 @@ public class ImageProcessing extends PApplet   {
             float brighnessMin, float brightnessMax,
             float saturationMin, float saturationMax
     ) {
-        PImage result = createImage(img.width, img.height, RGB);
+        PImage result = createImage(img.width, img.height, ALPHA);
 
         for(int i = 0; i < img.width * img.height; i++) {
             float hue = hue(img.pixels[i]);
@@ -375,12 +359,13 @@ public class ImageProcessing extends PApplet   {
                             ? color(255) : color(0);
         }
 
+
         return result;
     }
 
 
 
-    public ArrayList<PVector> hough(PImage edgeImg, int leftOffset, int topOffset, int color, int minVotes, int neighbourhood, int nLines) {
+    public PImage hough(PImage edgeImg, int leftOffset, int topOffset, int color, int minVotes, int neighbourhood, int nLines, ArrayList<PVector> lines) {
         float discretizationStepsPhi = 0.06f;
         float discretizationStepsR = 2.5f;
 
@@ -411,9 +396,6 @@ public class ImageProcessing extends PApplet   {
         for(int i = 0; i < accumulator.length; i++) {
             houghImg.pixels[i] = color(min(255, accumulator[i]));
         }
-
-        houghImg.resize(400, 300);
-        image(houghImg, 800, 0);
 
         ArrayList<Integer> bestCandidates = new ArrayList<Integer>();
 
@@ -458,8 +440,6 @@ public class ImageProcessing extends PApplet   {
         }
 
         Collections.sort(bestCandidates, new HoughComparator(accumulator));
-        ArrayList<PVector> lines = new ArrayList<>();
-
 
         int maxLine = min(bestCandidates.size(), nLines);
         for(int i = 0; i < maxLine; i++) {
@@ -474,7 +454,7 @@ public class ImageProcessing extends PApplet   {
 
         }
 
-        return lines;
+        return houghImg;
     }
 
     public void drawLine(float r, float phi, int imageWidth) {
