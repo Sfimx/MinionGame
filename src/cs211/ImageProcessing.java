@@ -163,7 +163,7 @@ public class ImageProcessing extends PApplet   {
 
         ArrayList<PVector> lines = hough (sobel, 0, 0, colors[imageIndex], 180, 10, 6);
         QuadGraph quadGraph = new QuadGraph();
-        getIntersections(lines);
+        //getIntersections(lines);
         quadGraph.build(lines, img.width, img.height);
         List<int[]> cycles = quadGraph.findCycles();
 
@@ -196,9 +196,22 @@ public class ImageProcessing extends PApplet   {
                         continue;
                     }
 
+                    // draw once what we keep
+                    fill(255, 128, 0);
+                    stroke(255, 128, 0);
+
+                    drawLine(l1.x, l1.y, img.width);
+                    drawLine(l2.x, l2.y, img.width);
+                    drawLine(l3.x, l3.y, img.width);
+                    drawLine(l4.x, l4.y, img.width);
+
+                    ellipse(c12.x, c12.y, 10, 10);
+                    ellipse(c23.x, c23.y, 10, 10);
+                    ellipse(c34.x, c34.y, 10, 10);
+                    ellipse(c41.x, c41.y, 10, 10);
+
                     shapeMaxArea = shapeArea;
-
-
+                    noStroke();
 
                     if (shapeCount >= shapeColors.size()) {
                         Random random = new Random();
@@ -213,6 +226,7 @@ public class ImageProcessing extends PApplet   {
                     } else {
                         fill(shapeColors.get(shapeCount));
                     }
+
                     shapeCount++;
                     quad(c12.x, c12.y, c23.x, c23.y, c34.x, c34.y, c41.x, c41.y);
 
@@ -458,47 +472,48 @@ public class ImageProcessing extends PApplet   {
 
             lines.add(new PVector(r, phi));
 
-
-            int x0 = 0;
-            int y0 = (int) (r / sin(phi));
-
-
-
-            int x1 = (int) (r / cos(phi));
-
-            int y1 = 0;
-
-
-            int x2 = edgeImg.width;
-            int y2 = (int) (-cos(phi) / sin(phi) * x2 + r / sin(phi));
-
-
-            int y3 = edgeImg.width;
-            int x3 = (int) (-(y3 - r / sin(phi)) * (sin(phi) / cos(phi)));
-
-
-            stroke(color);
-
-            if (y0 > 0) {
-                if (x1 > 0) {
-                    line(x0, y0, x1, y1);
-                }
-                else if (y2 > 0)
-                    line(x0, y0, x2, y2);
-                else
-                    line(x0, y0, x3, y3);
-            } else {
-                if (x1 > 0) {
-                    if (y2 > 0)
-                        line(x1, y1, x2, y2);
-                    else
-                        line(x1, y1, x3, y3);
-                } else
-                    line(x2, y2, x3, y3);
-            }
         }
 
         return lines;
+    }
+
+    public void drawLine(float r, float phi, int imageWidth) {
+        int x0 = 0;
+        int y0 = (int) (r / sin(phi));
+
+
+
+        int x1 = (int) (r / cos(phi));
+
+        int y1 = 0;
+
+
+        int x2 = imageWidth;
+        int y2 = (int) (-cos(phi) / sin(phi) * x2 + r / sin(phi));
+
+
+        int y3 = imageWidth;
+        int x3 = (int) (-(y3 - r / sin(phi)) * (sin(phi) / cos(phi)));
+
+
+
+        if (y0 > 0) {
+            if (x1 > 0) {
+                line(x0, y0, x1, y1);
+            }
+            else if (y2 > 0)
+                line(x0, y0, x2, y2);
+            else
+                line(x0, y0, x3, y3);
+        } else {
+            if (x1 > 0) {
+                if (y2 > 0)
+                    line(x1, y1, x2, y2);
+                else
+                    line(x1, y1, x3, y3);
+            } else
+                line(x2, y2, x3, y3);
+        }
     }
 
 
