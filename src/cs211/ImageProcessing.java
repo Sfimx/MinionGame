@@ -186,12 +186,18 @@ public class ImageProcessing extends PApplet   {
                 PVector c34 = intersection(l3, l4);
                 PVector c41 = intersection(l4, l1);
 
-                if (l1.mag() * l2.mag() > shapeMaxArea)
-                    shapeMaxArea = l1.mag() * l2.mag();
                 if (
-                        QuadGraph.isConvex(c12, c23, c34, c41)
-                                && QuadGraph.nonFlatQuad(c12, c23, c34, c41)
-                        ) {
+                       QuadGraph.isConvex(c12, c23, c34, c41)
+                    && QuadGraph.nonFlatQuad(c12, c23, c34, c41)
+                ) {
+                    float shapeArea = c12.dist(c23) * c12.dist(c41);
+
+                    if(shapeArea < shapeMaxArea) {
+                        continue;
+                    }
+
+                    shapeMaxArea = shapeArea;
+
 
 
                     if (shapeCount >= shapeColors.size()) {
