@@ -14,10 +14,7 @@ import java.util.*;
 
 public class ImageProcessing extends PApplet   {
     PImage img;
-    int[][] position;
-    PImage[] images;
     Capture cam;
-    int[] colors;
     ArrayList<Integer> shapeColors;
 
     HScrollbar maxBar = new HScrollbar(this, 0, 600, 640, 20);
@@ -37,45 +34,11 @@ public class ImageProcessing extends PApplet   {
     HScrollbar maxIntensityTresholdBar = new HScrollbar(this, 0, 960, 640, 20).setPos(190/255f);
 
     public void setup() {
-
-
-        size(1900, 1000);
-        //String[] cameras = Capture.list();
-
-        /*if(cameras.length == 0) {
-            println("No camera available");
-            exit();
-        }
-        else {
-            println("Available cameras :");
-            int i = 0;
-            for (String camera : cameras) {
-                println(i + " " + camera);
-                i++;
-            }
-
-            cam = new Capture(this, cameras[3]);
-            cam.start();
-        }*/
-        images = new PImage[] {
-                loadImage("board1.jpg"),
-                loadImage("board2.jpg"),
-                loadImage("board3.jpg"),
-                loadImage("board4.jpg")
-        };
-
-
-        colors = new int[] {
-                color(204, 102, 0),
-                color(204, 0, 62),
-                color(0, 29, 204),
-                color(69, 162, 24)
-        };
-
+        size(1900, 600);
         shapeColors = new ArrayList<>();
 
-
-        frameRate(4);
+        frameRate(30);
+        img = loadImage("board1.jpg");
     }
 
     public void draw() {
@@ -133,12 +96,6 @@ public class ImageProcessing extends PApplet   {
 
         background(color(255, 255, 255));
 
-        int i = 0;
-        int imageIndex = round((imageSelectionBar.getPos() * 4));
-        imageIndex = imageIndex == images.length ? imageIndex - 1 : imageIndex;
-
-        img = images[imageIndex];
-
         PImage threshold = threshold(
                 img,
                 minHueThresholdBar.getPos() * 256,
@@ -157,7 +114,7 @@ public class ImageProcessing extends PApplet   {
 
 
         ArrayList<PVector> lines = new ArrayList<>();
-        PImage accumulator = hough(sobel, 0, 0, colors[imageIndex], 200, 10, 6, lines);
+        PImage accumulator = hough(sobel, 200, 10, 6, lines);
         QuadGraph quadGraph = new QuadGraph();
         quadGraph.build(lines, img.width, img.height);
         List<int[]> cycles = quadGraph.findCycles();
@@ -365,7 +322,7 @@ public class ImageProcessing extends PApplet   {
 
 
 
-    public PImage hough(PImage edgeImg, int leftOffset, int topOffset, int color, int minVotes, int neighbourhood, int nLines, ArrayList<PVector> lines) {
+    public PImage hough(PImage edgeImg, int minVotes, int neighbourhood, int nLines, ArrayList<PVector> lines) {
         float discretizationStepsPhi = 0.06f;
         float discretizationStepsR = 2.5f;
 
@@ -398,10 +355,6 @@ public class ImageProcessing extends PApplet   {
         }
 
         ArrayList<Integer> bestCandidates = new ArrayList<Integer>();
-
-        int count = 0;
-        neighbourhood = 10;
-        minVotes = 200;
 
 
         for(int accR = 0; accR < rDim; accR++) {
@@ -444,7 +397,6 @@ public class ImageProcessing extends PApplet   {
         int maxLine = min(bestCandidates.size(), nLines);
         for(int i = 0; i < maxLine; i++) {
             int idx = bestCandidates.get(i);
-            count++;
             int accPhi = (int) (idx / (rDim + 2)) - 1;
             int accR = idx - (accPhi + 1) * (rDim + 2) - 1;
             float r = (accR - (rDim - 1) * 0.5f) * discretizationStepsR;
