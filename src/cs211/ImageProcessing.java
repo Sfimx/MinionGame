@@ -12,7 +12,7 @@ import java.util.*;
  */
 
 
-public class HoughWithWebcam extends PApplet   {
+public class ImageProcessing extends PApplet   {
     PImage img;
     int[][] position;
     PImage[] images;
