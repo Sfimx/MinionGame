@@ -64,7 +64,6 @@ public class Game extends PApplet {
         editorCylinder.z = -BOX_HEIGHT/2-CYLINDER_HEIGHT;
         eyeZ = (height/2.0f)/tan(radians(30));
         elements = new ArrayList<Element>(); 
-        
         dashboard = new Dashboard(width, DASHBOARD_HEIGHT, elements);
         topView = new TopView(Math.round(BOX_SIZE/2), mover); 
         elements.add(topView);
@@ -361,9 +360,9 @@ public class Game extends PApplet {
         float frictionMagnitude;
 
         Mover(float bound) {
-            location = new PVector(0, 0, 0);
-            velocity = new PVector(0, 0, 0);
-            gravity  = new PVector(0, 0, 0);
+            location = new PVector(0f, 0f, 0f);
+            velocity = new PVector(0f, 0f, 0f);
+            gravity  = new PVector(0f, 0f, 0f);
 
             this.bound = bound;
 
@@ -533,7 +532,7 @@ public class Game extends PApplet {
    		 if(!oldLocation.equals(mover.location)){
    			 totalScore = totalScore + mover.velocity.magSq();  
    			 lastScore = mover.velocity.magSq(); 
-   			 mover.velocity.x += Math.signum((float)mover.velocity.x);
+   		 	 mover.velocity.x += Math.signum((float)mover.velocity.x);
    			 mover.velocity.y += Math.signum((float)mover.velocity.y);
    			 oldLocation = mover.ballLocation();
    		 }
@@ -613,6 +612,7 @@ public class Game extends PApplet {
 
 		@Override
 		public void draw() {
+			
 			if (counter >= 30) {
 				int toInsert; 
 				if (scoreboard.totalScore() < 0) toInsert = 0;
@@ -620,8 +620,8 @@ public class Game extends PApplet {
 				numberOfSquares.add(toInsert); 
 				counter = 0; 
 			}
+			
 			counter++;			
-			System.out.println(counter);
 			context.beginDraw(); 
 			context.fill(100);
 			for(int i = 0; i < numberOfSquares.size(); i++){
