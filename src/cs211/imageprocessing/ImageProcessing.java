@@ -7,11 +7,6 @@ import processing.video.Capture;
 
 import java.util.*;
 
-/**
- * Created by Sfimx on 28.04.2015.
- */
-
-
 public class ImageProcessing extends PApplet   {
     PImage img;
     Capture cam;
