@@ -531,7 +531,7 @@ public class ImageProcessing extends PApplet   {
     }
 
     static public void main(String[] passedArgs) {
-        String[] appletArgs = new String[] { "cs211.HoughWithWebcam" };
+        String[] appletArgs = new String[] { "cs211.ImageProcessing" };
         if (passedArgs != null) {
             PApplet.main(concat(appletArgs, passedArgs));
         } else {
