@@ -1,4 +1,4 @@
-package cs211;
+package cs211.imageprocessing;
 import java.util.List;
 import java.util.ArrayList;
 import processing.core.PVector;

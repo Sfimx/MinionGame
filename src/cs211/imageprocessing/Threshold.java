@@ -1,4 +1,4 @@
-package cs211;
+package cs211.imageprocessing;
 
 
 public enum Threshold {

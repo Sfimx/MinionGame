@@ -1,4 +1,4 @@
-package cs211;
+package cs211.imageprocessing;
 
 import processing.core.PImage;
 import processing.core.PApplet;
@@ -484,7 +484,7 @@ public class ImageProcessing extends PApplet   {
     }
 
     static public void main(String[] passedArgs) {
-        String[] appletArgs = new String[] { "cs211.ImageProcessing" };
+        String[] appletArgs = new String[] { "cs211.imageprocessing.ImageProcessing" };
         if (passedArgs != null) {
             PApplet.main(concat(appletArgs, passedArgs));
         } else {
