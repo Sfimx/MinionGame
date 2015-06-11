@@ -5,6 +5,7 @@ import processing.core.PVector;
 import processing.event.MouseEvent;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class Game extends PApplet {
 
@@ -34,6 +35,7 @@ public class Game extends PApplet {
 
     float MAX_ANGLE = PI/3;
     PShape cylinder;
+    PShape minion;
     Boolean editMode = false;
     boolean editModeAnimation = false;
     boolean leaveEditModeAnimation = false;
@@ -46,6 +48,7 @@ public class Game extends PApplet {
     Mover mover;
 
     ArrayList<PVector> all_cylinders;
+    HashMap<PVector, Float> cylindersRotation;
     PVector editorCylinder;
 
     int DASHBOARD_HEIGHT = 200;
@@ -64,8 +67,15 @@ public class Game extends PApplet {
         BOX_SIZE = (height / 2 > width) ? width / 2 : height / 2;
         noStroke();
         mover = new Mover(BOX_SIZE);
-        cylinder = new Cylinder(CYLINDER_BASE_SIZE, CYLINDER_HEIGHT).getCylinder();
+        //cylinder = new Cylinder(CYLINDER_BASE_SIZE, CYLINDER_HEIGHT).getCylinder();
+        cylinder = loadShape("minion.obj");
+        cylinder.rotateX(-PI / 2);
+        cylinder.rotateY(PI);
+        cylinder.scale(1.6f);
+        cylinder.translate(0, -29, 0);
+
         all_cylinders = new ArrayList<PVector>();
+        cylindersRotation = new HashMap<>();
         editorCylinder = new PVector();
         editorCylinder.z = -BOX_HEIGHT/2-CYLINDER_HEIGHT;
         eyeZ = (height/2.0f)/tan(radians(30));
@@ -85,11 +95,15 @@ public class Game extends PApplet {
         background(255);
 
         lights();
+
         camera(
                 0, eyeY, eyeZ,     //eye position, begins at "origin"  "right where our real eyes are"
                 0, 0, 0,           //origin of scene
                 0, 1, 1
         );
+
+        fill(220, 220, 250);
+
 
         if(!editMode && !leaveEditModeAnimation && !editModeAnimation) {
             pushMatrix();
@@ -146,11 +160,13 @@ public class Game extends PApplet {
             }
         }
 
-        fill(220, 220, 250);
         box(BOX_SIZE, BOX_HEIGHT, BOX_SIZE);
+
         mover.display(SPHERE_RADIUS);
+
         noFill();
         drawObstacles();
+
 
 
     }
@@ -181,7 +197,9 @@ public class Game extends PApplet {
 
     public void mouseClicked() {
         if (editMode && validPosition) {
-            all_cylinders.add(new PVector(editorCylinder.x, editorCylinder.y, editorCylinder.z));
+            PVector key = new PVector(editorCylinder.x, editorCylinder.y, editorCylinder.z);
+            all_cylinders.add(key);
+            cylindersRotation.put(key, random(0, PI));
         }
     }
 
@@ -217,8 +235,14 @@ public class Game extends PApplet {
     public void drawCylinderAt(PVector position) {
         pushMatrix();
         rotateX(-PI/2);
+
         translate(position.x, position.y, position.z);
+
+        if(cylindersRotation.containsKey(position))
+            rotateZ(cylindersRotation.get(position));
+
         shape(cylinder);
+
         //drawAxis();
         popMatrix();
     }
