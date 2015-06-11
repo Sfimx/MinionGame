@@ -3,9 +3,9 @@ package cs211.imageprocessing;
 import processing.core.PImage;
 import processing.core.PApplet;
 import processing.core.PVector;
-import processing.video.Capture;
 import processing.video.Movie;
 
+import java.awt.event.KeyEvent;
 import java.util.*;
 
 public class ImageProcessing extends PApplet   {
@@ -14,14 +14,20 @@ public class ImageProcessing extends PApplet   {
     Movie cam;
     ArrayList<Integer> shapeColors;
 
-    int offset = 35;
-    HScrollbar minHueThresholdBar = new HScrollbar(this, 0, 480, 640, 20).setPos(100/256.0F);
+    int offset = 25;
+    int houghMinVotes = 115;
+    int houghNeighborough = 12;
+    int houghNbLines = 6;
+    int minQuadArea = 50000;
+    int maxQuadArea = 200000;
+    
+    HScrollbar minHueThresholdBar = new HScrollbar(this, 0, 480, 640, 20).setPos(78/256.0F);
     HScrollbar maxHueThresholdBar = new HScrollbar(this, 0, 480 + 1 * offset, 640, 20).setPos(136/256.0F);
 
     HScrollbar minBrightnessThresholdBar = new HScrollbar(this, 0, 480 + 2 * offset, 640, 20).setPos(34/256.0F);
-    HScrollbar maxBrightnessThresholdBar = new HScrollbar(this, 0, 480 + 3 * offset, 640, 20).setPos(256/256.0F);
+    HScrollbar maxBrightnessThresholdBar = new HScrollbar(this, 0, 480 + 3 * offset, 640, 20).setPos(241/256.0F);
 
-    HScrollbar minSaturationThresholdBar = new HScrollbar(this, 0, 480 + 4 * offset, 640, 20).setPos(30/256.0F);
+    HScrollbar minSaturationThresholdBar = new HScrollbar(this, 0, 480 + 4 * offset, 640, 20).setPos(52/256.0F);
     HScrollbar maxSaturationThresholdBar = new HScrollbar(this, 0, 480 + 5 * offset, 640, 20).setPos(256/256.0F);
 
     HScrollbar minIntensityTresholdBar = new HScrollbar(this, 0, 480 + 6 * offset, 640, 20).setPos(50/255f);
@@ -33,18 +39,48 @@ public class ImageProcessing extends PApplet   {
 
         frameRate(60);
         img = loadImage("board1.jpg");
-        cam = new Movie(this, "C:\\Users\\Sfimx\\Documents\\testvideo.mp4");
+        cam = new Movie(this, "C:\\Users\\LPI\\Documents\\_EPFL\\BA3_4\\2eSem\\visual computing\\testvideo.mp4");
         cam.loop();
     }
+    
+    public void keyPressed() {
+        if (keyCode == ENTER) {
+            cam.read();
+        } else if (key == KeyEvent.VK_PERIOD) {
+            houghNbLines--;
+        } else if (key == KeyEvent.VK_MINUS) {
+            houghNbLines++;
+        } else if (key == 'q') {
+            minQuadArea-=100;
+        } else if (key == 'w') {
+            minQuadArea+=100;
+        } else if (key == 'a') {
+            maxQuadArea-=100;
+        } else if (key == 's') {
+            maxQuadArea+=100;
+        } 
+        
+        else if (key == CODED) {
+          if (keyCode == UP) {
+            houghMinVotes += 5;
+          } else if (keyCode == DOWN) {
+              houghMinVotes -= 5;
+          } else if (keyCode == LEFT) {
+              houghNeighborough -= 2;
+          } else if (keyCode == RIGHT) {
+              houghNeighborough += 2;
+          } 
+        }  
+      }
 
     public void draw() {
 
 
-        println("cam.available(): " + cam.available());
+        //println("cam.available(): " + cam.available());
         //if(cam.available()) {
         //    cam.read();
         //}
-        cam.read();
+        //cam.read();
         //cam.loadPixels();
         img = cam;
         //img = cam.get();
@@ -105,6 +141,12 @@ public class ImageProcessing extends PApplet   {
         text("maxSaturationThresholdBar : " +  maxSaturationThresholdBar.getPos() * 256, 650f, 495f + 5 * offset);
         text("minIntensityTresholdBar : " +    minIntensityTresholdBar.getPos() * 256, 650f, 495f + 6 * offset);
         text("maxIntensityTresholdBar : " +    maxIntensityTresholdBar.getPos() * 256, 650f, 495f + 7 * offset);
+        text("houghMinVotes : " +              houghMinVotes, 650f, 495f + 8 * offset-10);
+        text("houghNeighborough : " +          houghNeighborough, 650f, 495f + 9 * offset-20);
+        text("houghNbLines : " +               houghNbLines, 650f, 495f + 10 * offset-30);
+        
+        text("minQuadArea : " +                minQuadArea, 800f, 495f + 8 * offset-10);
+        text("maxQuadArea : " +                maxQuadArea, 800f, 495f + 9 * offset-20);
 
         PImage threshold = threshold(
                 img,
@@ -116,15 +158,16 @@ public class ImageProcessing extends PApplet   {
                 maxSaturationThresholdBar.getPos() * 256
         );
         PImage blurred = convolute(blur, 99, threshold);
-        PImage intensityTreshold = threshold(blurred, 0, 255f, minIntensityTresholdBar.getPos() * 255, maxIntensityTresholdBar.getPos() * 255, 0, 255f);
+        PImage intensityTreshold = threshold(blurred, 0, 255f, minIntensityTresholdBar.getPos() * 256, maxIntensityTresholdBar.getPos() * 256, 0, 255f);
         PImage sobel = sobel(intensityTreshold);
 
         image(img, 0, 0);
+        
         //image(blurred, 1600, 0);
 
 
         ArrayList<PVector> lines = new ArrayList<>();
-        PImage accumulator = hough(sobel, 200, 10, 6, lines);
+        PImage accumulator = hough(sobel, houghMinVotes, houghNeighborough, houghNbLines, lines);//TODO check if adjustment needed 180, x, 6
         QuadGraph quadGraph = new QuadGraph();
         quadGraph.build(lines, img.width, img.height);
         List<int[]> cycles = quadGraph.findCycles();
@@ -147,10 +190,13 @@ public class ImageProcessing extends PApplet   {
             PVector c34 = intersection(l3, l4);
             PVector c41 = intersection(l4, l1);
 
+            //TODO check if adjustement needed here
             if (
-                   QuadGraph.isConvex(c12, c23, c34, c41)
-                && QuadGraph.nonFlatQuad(c12, c23, c34, c41)
-            ) {
+                  // QuadGraph.isConvex(c12, c23, c34, c41) &&
+                QuadGraph.nonFlatQuad(c12, c23, c34, c41)
+               && QuadGraph.validArea(c12, c23, c34, c41, maxQuadArea, minQuadArea)
+            ) 
+            {
                 float shapeArea = c12.dist(c23) * c12.dist(c41);
 
                 if(shapeArea < shapeMaxArea) {
@@ -268,6 +314,7 @@ public class ImageProcessing extends PApplet   {
         //float max = 0;
         float[] buffer = new float[img.width * img.height];
 
+        //TODO check if better one pass
         PImage hConvoluted = convolute(hKernel, 1, img);
         PImage vConvoluted = convolute(vKernel, 1, img);
 
@@ -289,6 +336,7 @@ public class ImageProcessing extends PApplet   {
             }
         }
 
+        //TODO check max
         for (int y = 2; y < img.height - 2; y++) {
             for (int x = 2; x < img.width - 2; x++) {
                 if (buffer[y * img.width + x] > (max * 0.3f)) {
@@ -336,19 +384,29 @@ public class ImageProcessing extends PApplet   {
         int rDim = (int) (((edgeImg.width + edgeImg.height) * 2 + 1) / discretizationStepsR);
 
         int[] accumulator = new int[(phiDim + 2) * (rDim + 2)];
+        
+     // pre-compute the sin and cos values
+        float[] tabSin = new float[phiDim];
+        float[] tabCos = new float[phiDim];
+        float ang = 0;
+        float inverseR = 1.f / discretizationStepsR;
+        for (int accPhi = 0; accPhi < phiDim; ang += discretizationStepsPhi, accPhi++) 
+        {
+            // we can also pre-multiply by (1/discretizationStepsR) since we need it in the Hough loop
+            tabSin[accPhi] = (float) (Math.sin(ang) * inverseR);
+            tabCos[accPhi] = (float) (Math.cos(ang) * inverseR);
+        }
 
         for(int y = 0; y < edgeImg.height; y++) {
-            for(int x = 0; x < edgeImg.width; x++) {
+            for(int x = 0; x < edgeImg.width; x++) {// Are we on an edge?
                 if(brightness(edgeImg.pixels[y * edgeImg.width + x]) != 0) {
+                    // ...determine here all the lines (r, phi) passing through
+                    // pixel (x,y), convert (r,phi) to coordinates in the
+                    // accumulator, and increment accordingly the accumulator.
                     for(int accPhi = 0; accPhi < phiDim; accPhi++) {
-                        float truePhi = accPhi * discretizationStepsPhi;
-                        float r = x * cos(truePhi) + y * sin(truePhi);
-
-                        float accR = ((r / discretizationStepsR) + (rDim + 2) / 2);
-
-
-                        accumulator[(int) (accR + (accPhi + 1) * (rDim + 2) + 1)]++;
-
+                        double kindOfR = x*tabCos[accPhi] + y*tabSin[accPhi];
+                        double accR =  kindOfR + (rDim + 2)/2;//+2 car marges dans acc
+                        accumulator[(int) (accR+1+(accPhi+1)*(rDim+2))] += 1;
                     }
                 }
             }
@@ -360,6 +418,7 @@ public class ImageProcessing extends PApplet   {
             houghImg.pixels[i] = color(min(255, accumulator[i]));
         }
 
+        
         ArrayList<Integer> bestCandidates = new ArrayList<Integer>();
 
 
