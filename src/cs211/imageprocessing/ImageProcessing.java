@@ -242,12 +242,6 @@ public class ImageProcessing extends PApplet {
             PVector c34 = intersection(l3, l4);
             PVector c41 = intersection(l4, l1);
 
-                if(display) {
-                    fill(255, 128, 0);
-                    stroke(255, 128, 0);
-
-
-
             ArrayList<PVector> temp = new ArrayList<>();
 
             temp.add(c12);

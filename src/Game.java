@@ -97,7 +97,7 @@ public class Game extends PApplet {
         pouet = new ImageProcessing();
         pouet.g = this.g;
 
-        cam = new Movie(this, "C:\\Users\\Sfimx\\Documents\\testvideo.mp4");
+        cam = new Movie(this, "C:\\Users\\LPI\\Documents\\_EPFL\\BA3_4\\2eSem\\visual computing\\testvideo.mp4");
         cam.loop();
 
         twoDThreeD = new TwoDThreeD(cam.width, cam.height);
