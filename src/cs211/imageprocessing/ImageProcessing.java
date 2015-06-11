@@ -180,95 +180,100 @@ public class ImageProcessing extends PApplet   {
         float shapeMaxArea = 0f;
         int shapeCount = 0;
         int shapeRawCount = 0;
-        List<PVector> corners = getCorners(); 
+        List<PVector> corners = getCorners();
 
-        for(int[] quad : cycles) {
-            shapeRawCount++;
+        if(corners.size() == 4) {
 
-            
-            PVector l1 = lines.get(quad[0]);
-            PVector l2 = lines.get(quad[1]);
-            PVector l3 = lines.get(quad[2]);
-            PVector l4 = lines.get(quad[3]);
-          
-            
-            PVector c12 = intersection(l1, l2);
-            PVector c23 = intersection(l2, l3);
-            PVector c34 = intersection(l3, l4);
-            PVector c41 = intersection(l4, l1);
+            for (int[] quad : cycles) {
 
-            //TODO check if adjustement needed here
-            if (
-                  // QuadGraph.isConvex(c12, c23, c34, c41) &&
-                QuadGraph.nonFlatQuad(c12, c23, c34, c41)
-               && QuadGraph.validArea(c12, c23, c34, c41, maxQuadArea, minQuadArea)
-            ) 
-            {
-                float shapeArea = c12.dist(c23) * c12.dist(c41);
+                shapeRawCount++;
 
-                if(shapeArea < shapeMaxArea) {
-                    //continue;
+
+                PVector l1 = lines.get(quad[0]);
+                PVector l2 = lines.get(quad[1]);
+                PVector l3 = lines.get(quad[2]);
+                PVector l4 = lines.get(quad[3]);
+
+
+                PVector c12 = intersection(l1, l2);
+                PVector c23 = intersection(l2, l3);
+                PVector c34 = intersection(l3, l4);
+                PVector c41 = intersection(l4, l1);
+
+                //TODO check if adjustement needed here
+                if (
+                    // QuadGraph.isConvex(c12, c23, c34, c41) &&
+                        QuadGraph.nonFlatQuad(c12, c23, c34, c41)
+                                && QuadGraph.validArea(c12, c23, c34, c41, maxQuadArea, minQuadArea)
+                        ) {
+                    float shapeArea = c12.dist(c23) * c12.dist(c41);
+
+                    if (shapeArea < shapeMaxArea) {
+                        //continue;
+                    }
+
+                    // draw once what we keep
+                    fill(255, 128, 0);
+                    stroke(255, 128, 0);
+
+
+                    drawLine(l1.x, l1.y, img.width);
+                    drawLine(l2.x, l2.y, img.width);
+                    drawLine(l3.x, l3.y, img.width);
+                    drawLine(l4.x, l4.y, img.width);
+
+                    c12 = corners.get(0);
+                    c23 = corners.get(1);
+                    c34 = corners.get(2);
+                    c41 = corners.get(3);
+
+                    ellipse(c12.x, c12.y, 10, 10);
+                    text("papayaaaaaa" + 1, c12.x, c12.y);
+                    ellipse(c23.x, c23.y, 10, 10);
+                    text("papayaaaaaa" + 2, c23.x, c23.y);
+                    ellipse(c34.x, c34.y, 10, 10);
+                    text("papayaaaaaa" + 3, c34.x, c34.y);
+                    ellipse(c41.x, c41.y, 10, 10);
+                    text("papayaaaaaa" + 4, c41.x, c41.y);
+
+                    shapeMaxArea = shapeArea;
+                    noStroke();
+
+                    if (shapeCount >= shapeColors.size()) {
+                        Random random = new Random();
+                        int newColor = color(
+                                min(255, random.nextInt(300)),
+                                min(255, random.nextInt(300)),
+                                min(255, random.nextInt(300)),
+                                50
+                        );
+                        shapeColors.add(newColor);
+                        fill(newColor);
+                    } else {
+                        fill(shapeColors.get(shapeCount));
+                    }
+
+                    shapeCount++;
+                    quad(c12.x, c12.y, c23.x, c23.y, c34.x, c34.y, c41.x, c41.y);
+
                 }
+            }
 
-                // draw once what we keep
-                fill(255, 128, 0);
-                stroke(255, 128, 0);
-                
-                
-                drawLine(l1.x, l1.y, img.width);
-                drawLine(l2.x, l2.y, img.width);
-                drawLine(l3.x, l3.y, img.width);
-                drawLine(l4.x, l4.y, img.width);
-                
-                c12 = corners.get(0);
-                c23 = corners.get(1); 
-                c34 = corners.get(2); 
-                c41 = corners.get(3);
 
-                ellipse(c12.x, c12.y, 10, 10);
-                text("papayaaaaaa" + 1, c12.x, c12.y);
-                ellipse(c23.x, c23.y, 10, 10);
-                text("papayaaaaaa" + 2, c23.x, c23.y);
-                ellipse(c34.x, c34.y, 10, 10);
-                text("papayaaaaaa" + 3, c34.x, c34.y);
-                ellipse(c41.x, c41.y, 10, 10);
-                text("papayaaaaaa" + 4, c41.x, c41.y);
+            accumulator.resize(300, 600);
+            //image(accumulator, 800, 0);
+            image(sobel, 640, 0);
 
-                shapeMaxArea = shapeArea;
-                noStroke();
+            TwoDThreeD twoThree = new TwoDThreeD(img.width, img.height);
 
-                if (shapeCount >= shapeColors.size()) {
-                    Random random = new Random();
-                    int newColor = color(
-                            min(255, random.nextInt(300)),
-                            min(255, random.nextInt(300)),
-                            min(255, random.nextInt(300)),
-                            50
-                    );
-                    shapeColors.add(newColor);
-                    fill(newColor);
-                } else {
-                    fill(shapeColors.get(shapeCount));
-                }
+            if (!corners.isEmpty()) {
+                PVector rotations = twoThree.get3DRotations(corners);
 
-                shapeCount++;
-                quad(c12.x, c12.y, c23.x, c23.y, c34.x, c34.y, c41.x, c41.y);
-
+                println("rx: " + degrees(rotations.x));
+                println("ry: " + degrees(rotations.y));
+                println("rz: " + degrees(rotations.z));
             }
         }
-
-
-        accumulator.resize(300, 600);
-        //image(accumulator, 800, 0);
-        image(sobel, 640, 0);
-        
-        TwoDThreeD twoThree = new TwoDThreeD(img.width, img.height); 
-        
-        PVector rotations = twoThree.get3DRotations(corners);
-        
-        println("rx: " + degrees(rotations.x));
-        println("ry: " + degrees(rotations.y));
-        println("rz: " + degrees(rotations.z));
 
         minHueThresholdBar.display();
         maxHueThresholdBar.display();
@@ -646,6 +651,9 @@ public class ImageProcessing extends PApplet   {
     
     
     public static List<PVector> sortCorners(List<PVector> quad){
+        if(quad.isEmpty())
+            return new ArrayList<>();
+
     	// Sort corners so that they are ordered clockwise
     	PVector a = quad.get(0);
     	PVector b = quad.get(2);
