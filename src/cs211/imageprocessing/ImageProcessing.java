@@ -16,23 +16,23 @@ public class ImageProcessing extends PApplet   {
     ArrayList<int[]> corners = new ArrayList<int[]>();
 
     int offset = 25;
-    int houghMinVotes = 115;
-    int houghNeighborough = 12;
+    int houghMinVotes = 145;
+    int houghNeighborough = 21;
     int houghNbLines = 6;
-    int minQuadArea = 50000;
-    int maxQuadArea = 200000;
+    int minQuadArea =  42800;
+    int maxQuadArea = 164000;
     
-    HScrollbar minHueThresholdBar = new HScrollbar(this, 0, 480, 640, 20).setPos(78/256.0F);
-    HScrollbar maxHueThresholdBar = new HScrollbar(this, 0, 480 + 1 * offset, 640, 20).setPos(136/256.0F);
+    HScrollbar minHueThresholdBar = new HScrollbar(this, 0, 480, 640, 20).setPos(80/256.0F);
+    HScrollbar maxHueThresholdBar = new HScrollbar(this, 0, 480 + 1 * offset, 640, 20).setPos(137/256.0F);
 
-    HScrollbar minBrightnessThresholdBar = new HScrollbar(this, 0, 480 + 2 * offset, 640, 20).setPos(34/256.0F);
-    HScrollbar maxBrightnessThresholdBar = new HScrollbar(this, 0, 480 + 3 * offset, 640, 20).setPos(241/256.0F);
+    HScrollbar minBrightnessThresholdBar = new HScrollbar(this, 0, 480 + 2 * offset, 640, 20).setPos(73/256.0F);
+    HScrollbar maxBrightnessThresholdBar = new HScrollbar(this, 0, 480 + 3 * offset, 640, 20).setPos(236/256.0F);
 
-    HScrollbar minSaturationThresholdBar = new HScrollbar(this, 0, 480 + 4 * offset, 640, 20).setPos(52/256.0F);
+    HScrollbar minSaturationThresholdBar = new HScrollbar(this, 0, 480 + 4 * offset, 640, 20).setPos(65/256.0F);
     HScrollbar maxSaturationThresholdBar = new HScrollbar(this, 0, 480 + 5 * offset, 640, 20).setPos(256/256.0F);
 
-    HScrollbar minIntensityTresholdBar = new HScrollbar(this, 0, 480 + 6 * offset, 640, 20).setPos(50/255f);
-    HScrollbar maxIntensityTresholdBar = new HScrollbar(this, 0, 480 + 7 * offset, 640, 20).setPos(190/255f);
+    HScrollbar minIntensityTresholdBar = new HScrollbar(this, 0, 480 + 6 * offset, 640, 20).setPos(66/255f);
+    HScrollbar maxIntensityTresholdBar = new HScrollbar(this, 0, 480 + 7 * offset, 640, 20).setPos(222/255f);
 
     boolean playing = true;
 
@@ -162,7 +162,7 @@ public class ImageProcessing extends PApplet   {
                 maxSaturationThresholdBar.getPos() * 256
         );
         PImage blurred = convolute(blur, 99, threshold);
-        PImage intensityTreshold = threshold(blurred, 0, 255f, minIntensityTresholdBar.getPos() * 256, maxIntensityTresholdBar.getPos() * 256, 0, 255f);
+        PImage intensityTreshold = threshold(blurred, 0, 255f, minIntensityTresholdBar.getPos() * 255, maxIntensityTresholdBar.getPos() * 255, 0, 255f);
         PImage sobel = sobel(intensityTreshold);
 
         image(img, 0, 0);
@@ -171,7 +171,7 @@ public class ImageProcessing extends PApplet   {
 
 
         ArrayList<PVector> lines = new ArrayList<>();
-        PImage accumulator = hough(sobel, houghMinVotes, houghNeighborough, houghNbLines, lines);//TODO check if adjustment needed 180, x, 6
+        PImage accumulator = hough(sobel, houghMinVotes, houghNeighborough, houghNbLines, lines);
         QuadGraph quadGraph = new QuadGraph();
         quadGraph.build(lines, img.width, img.height);
         List<int[]> cycles = quadGraph.findCycles();
@@ -202,15 +202,15 @@ public class ImageProcessing extends PApplet   {
 
                 //TODO check if adjustement needed here
                 if (
-                    // QuadGraph.isConvex(c12, c23, c34, c41) &&
-                        QuadGraph.nonFlatQuad(c12, c23, c34, c41)
-                                && QuadGraph.validArea(c12, c23, c34, c41, maxQuadArea, minQuadArea)
+                   QuadGraph.isConvex(c12, c23, c34, c41) &&
+                //QuadGraph.nonFlatQuad(c12, c23, c34, c41) &&
+                QuadGraph.validArea(c12, c23, c34, c41, maxQuadArea, minQuadArea)
                         ) {
                     float shapeArea = c12.dist(c23) * c12.dist(c41);
 
-                    if (shapeArea < shapeMaxArea) {
-                        //continue;
-                    }
+//                if(shapeArea < shapeMaxArea) {
+//                    //continue;
+//                }
 
                     // draw once what we keep
                     fill(255, 128, 0);
@@ -236,7 +236,7 @@ public class ImageProcessing extends PApplet   {
                     ellipse(c41.x, c41.y, 10, 10);
                     text("papayaaaaaa" + 4, c41.x, c41.y);
 
-                    shapeMaxArea = shapeArea;
+                //shapeMaxArea = shapeArea;
                     noStroke();
 
                     if (shapeCount >= shapeColors.size()) {
@@ -245,7 +245,7 @@ public class ImageProcessing extends PApplet   {
                                 min(255, random.nextInt(300)),
                                 min(255, random.nextInt(300)),
                                 min(255, random.nextInt(300)),
-                                50
+                            120
                         );
                         shapeColors.add(newColor);
                         fill(newColor);
@@ -360,7 +360,7 @@ public class ImageProcessing extends PApplet   {
 
     public PImage convolute(float[][] kernel, float weight, PImage img) {
 
-        PImage result = createImage(img.width, img.height, ALPHA);
+        PImage result = createImage(img.width, img.height, RGB);
 
         for(int x = 1; x < img.width - 1; x++) {
             for(int y = 1; y < img.height - 1; y++) {
@@ -440,7 +440,7 @@ public class ImageProcessing extends PApplet   {
         //TODO check max
         for (int y = 2; y < img.height - 2; y++) {
             for (int x = 2; x < img.width - 2; x++) {
-                if (buffer[y * img.width + x] > (max * 0.3f)) {
+                if (buffer[y * img.width + x] > (max * 0.2f)) {
                     result.pixels[y * img.width + x] = color(255);
                 } else {
                     result.pixels[y * img.width + x] = color(0);
