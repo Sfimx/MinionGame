@@ -159,6 +159,7 @@ public class Game extends PApplet {
                 leaveEditModeAnimation = false;
             }
         }
+        fill(220, 220, 250);
 
         box(BOX_SIZE, BOX_HEIGHT, BOX_SIZE);
 
