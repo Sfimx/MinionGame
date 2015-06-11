@@ -4,12 +4,14 @@ import processing.core.PImage;
 import processing.core.PApplet;
 import processing.core.PVector;
 import processing.video.Capture;
+import processing.video.Movie;
 
 import java.util.*;
 
 public class ImageProcessing extends PApplet   {
     PImage img;
-    Capture cam;
+    //Capture cam;
+    Movie cam;
     ArrayList<Integer> shapeColors;
 
     HScrollbar maxBar = new HScrollbar(this, 0, 600, 640, 20);
@@ -32,14 +34,20 @@ public class ImageProcessing extends PApplet   {
         size(1900, 600);
         shapeColors = new ArrayList<>();
 
-        frameRate(30);
+        frameRate(10);
         img = loadImage("board1.jpg");
+        cam = new Movie(this, "C:\\Users\\Sfimx\\Documents\\testvideo.mp4");
+        cam.loop();
     }
 
     public void draw() {
+        println("cam.available(): " + cam.available());
         //if(cam.available()) {
         //    cam.read();
         //}
+        cam.read();
+        //cam.loadPixels();
+        img = cam;
         //img = cam.get();
 
 
