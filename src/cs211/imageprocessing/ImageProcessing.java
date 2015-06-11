@@ -129,6 +129,11 @@ public class ImageProcessing extends PApplet {
         minHueThresholdBar.update();
         maxHueThresholdBar.update();
 
+        if(display) {
+
+            minHueThresholdBar.update();
+            maxHueThresholdBar.update();
+
         minBrightnessThresholdBar.update();
         maxBrightnessThresholdBar.update();
 
@@ -138,9 +143,8 @@ public class ImageProcessing extends PApplet {
         minIntensityTresholdBar.update();
         maxIntensityTresholdBar.update();
 
-
-        if(display) {
-
+            background(color(255, 255, 255));
+            fill(0, 0, 0);
 
 
             text("minHueTresholdBar : " + minHueThresholdBar.getPos() * 256, 650f, 495f);
@@ -158,8 +162,7 @@ public class ImageProcessing extends PApplet {
             text("minQuadArea : " + minQuadArea, 800f, 495f + 8 * offset - 10);
             text("maxQuadArea : " + maxQuadArea, 800f, 495f + 9 * offset - 20);
 
-            background(color(255, 255, 255));
-            fill(0, 0, 0);
+            
         }
 
 
@@ -183,9 +186,6 @@ public class ImageProcessing extends PApplet {
 
         if(display) image(img, 0, 0);
 
-        //image(blurred, 1600, 0);
-
-
         ArrayList<PVector> lines = new ArrayList<>();
         PImage accumulator = hough(sobel, houghMinVotes, houghNeighborough, houghNbLines, lines);
         QuadGraph quadGraph = new QuadGraph();
@@ -193,44 +193,58 @@ public class ImageProcessing extends PApplet {
         List<int[]> cycles = quadGraph.findCycles();
 
 
-        float shapeMaxArea = 0f;
         int shapeCount = 0;
-        int shapeRawCount = 0;
         ArrayList<ArrayList<PVector>> corners = new ArrayList<>();
 
+        float currentMaxArea = 0;
+        ArrayList<int[]> newQuad = new ArrayList<int[]>();
+        
         for (int[] quad : cycles) {
-
-            shapeRawCount++;
-
-
+            
             PVector l1 = lines.get(quad[0]);
             PVector l2 = lines.get(quad[1]);
             PVector l3 = lines.get(quad[2]);
             PVector l4 = lines.get(quad[3]);
 
-
             PVector c12 = intersection(l1, l2);
             PVector c23 = intersection(l2, l3);
             PVector c34 = intersection(l3, l4);
             PVector c41 = intersection(l4, l1);
-
-            //TODO check if adjustement needed here
+            
+            
+            float area = QuadGraph.area(c12, c23, c34, c41);
+            if(area <= currentMaxArea) {
+                continue;
+            } else {
+                currentMaxArea = area;
+            }
+            
+          //TODO check if adjustement needed here
             if (
                     QuadGraph.isConvex(c12, c23, c34, c41) &&
                             //QuadGraph.nonFlatQuad(c12, c23, c34, c41) &&
-                            QuadGraph.validArea(c12, c23, c34, c41, maxQuadArea, minQuadArea)
+                            QuadGraph.validArea(area, maxQuadArea, minQuadArea)
                     ) {
-                float shapeArea = c12.dist(c23) * c12.dist(c41);
-
-//                if(shapeArea < shapeMaxArea) {
-//                    //continue;
-//                }
-
+                newQuad.add(quad);
+            }
+        }
+        
+        for (int[] quad : newQuad) {             
+                
                 // draw once what we keep
                 if(display) {
                     fill(255, 128, 0);
                     stroke(255, 128, 0);
+                
+                PVector l1 = lines.get(quad[0]);
+                PVector l2 = lines.get(quad[1]);
+                PVector l3 = lines.get(quad[2]);
+                PVector l4 = lines.get(quad[3]);
 
+                PVector c12 = intersection(l1, l2);
+                PVector c23 = intersection(l2, l3);
+                PVector c34 = intersection(l3, l4);
+                PVector c41 = intersection(l4, l1);
 
                     drawLine(l1.x, l1.y, img.width);
                     drawLine(l2.x, l2.y, img.width);
@@ -247,8 +261,6 @@ public class ImageProcessing extends PApplet {
 
                 corners.add(temp);
 
-
-                //shapeMaxArea = shapeArea;
                 if(display) {
                     noStroke();
 
@@ -271,12 +283,11 @@ public class ImageProcessing extends PApplet {
 
                 shapeCount++;
             }
-        }
-
-
+        
 
         ArrayList<PVector> selected = null;
 
+        
         while(!corners.isEmpty() && (selected == null || selected.size() != 4)) {
             if(selected != null && selected.size() != 4) {
                 corners.remove(selected);
@@ -284,6 +295,7 @@ public class ImageProcessing extends PApplet {
             selected = corners.get(random.nextInt(corners.size()));
         }
 
+                for(PVector point : sortCorners(selected)) {
         if(display) {
             accumulator.resize(300, 600);
             //image(accumulator, 800, 0);
@@ -326,10 +338,20 @@ public class ImageProcessing extends PApplet {
             minIntensityTresholdBar.display();
             maxIntensityTresholdBar.display();
         }
+        
+        
+        
+       /* if(selected != null) {
+         // Sort corners so that they are ordered clockwise
+            PVector a = selected.get(0);
+            PVector b = selected.get(2);
+            PVector c = selected.get(3); 
+            PVector d = selected.get(1);
+            PVector center = new PVector((a.x+b.x+c.x +d.x)/4,(a.y+b.y+c.y + d.y)/4);
+            Collections.sort(selected,new CWComparator(center));
+            Collections.sort(selected, new CWComparator(center));
+        }*/
 
-
-        //return rotations;
-        return selected == null ? null : twoDThreeD.get3DRotations(sorted);
     }
 
     public PImage convolute(float[][] kernel, float weight, PImage img) {
@@ -386,10 +408,8 @@ public class ImageProcessing extends PApplet {
             result.pixels[i] = color(0);
         }
 
-        //float max = 0;
         float[] buffer = new float[img.width * img.height];
 
-        //TODO check if better one pass
         PImage hConvoluted = convolute(hKernel, 1, img);
         PImage vConvoluted = convolute(vKernel, 1, img);
 
@@ -414,7 +434,7 @@ public class ImageProcessing extends PApplet {
         //TODO check max
         for (int y = 2; y < img.height - 2; y++) {
             for (int x = 2; x < img.width - 2; x++) {
-                if (buffer[y * img.width + x] > (max * 0.2f)) {
+                if (buffer[y * img.width + x] > (max * 0.3f)) {
                     result.pixels[y * img.width + x] = color(255);
                 } else {
                     result.pixels[y * img.width + x] = color(0);
@@ -450,8 +470,6 @@ public class ImageProcessing extends PApplet {
 
         return result;
     }
-
-
 
     public PImage hough(PImage edgeImg, int minVotes, int neighbourhood, int nLines, ArrayList<PVector> lines) {
         float discretizationStepsPhi = 0.06f;
@@ -633,7 +651,9 @@ public class ImageProcessing extends PApplet {
     	// Sort corners so that they are ordered clockwise
     	PVector a = quad.get(0);
     	PVector b = quad.get(2);
-    	PVector center = new PVector((a.x+b.x)/2,(a.y+b.y)/2);
+    	PVector c = quad.get(3); 
+    	PVector d = quad.get(1);
+    	PVector center = new PVector((a.x+b.x+c.x +d.x)/4,(a.y+b.y+c.y + d.y)/4);
     	Collections.sort(quad,new CWComparator(center));
     	// TODO:
     	// Re-order the corners so that the first one is the closest to the
@@ -652,7 +672,7 @@ public class ImageProcessing extends PApplet {
     		}
     	}
 
-    	Collections.rotate(quad, index);
+    	Collections.rotate(quad, -index);
 
     	return quad;
     }

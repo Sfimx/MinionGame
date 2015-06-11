@@ -14,4 +14,18 @@ public class CWComparator implements Comparator<PVector> {
 			return -1;
 		else return 1;
 	}
+	
+	/*public int compare(PVector x, PVector y) {
+	    if (x.y < center.y && y.y < center.y) {
+	        if (x.x < y.x) return -1; 
+	        else return 1; 
+	    } else  if (x.y>center.y && y.y >center.y) {
+            if (x.x < y.x) return 1; 
+            else return -1; 
+	    } else if(x.y<center.y && y.y >center.y){
+	        return -1; 
+	    }else {
+	        return 1;
+	    }
+	}*/
 }
