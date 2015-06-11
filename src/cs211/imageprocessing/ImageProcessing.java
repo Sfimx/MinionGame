@@ -33,6 +33,8 @@ public class ImageProcessing extends PApplet   {
     HScrollbar minIntensityTresholdBar = new HScrollbar(this, 0, 480 + 6 * offset, 640, 20).setPos(50/255f);
     HScrollbar maxIntensityTresholdBar = new HScrollbar(this, 0, 480 + 7 * offset, 640, 20).setPos(190/255f);
 
+    boolean playing = true;
+
     public void setup() {
         size(1280, 745);
         shapeColors = new ArrayList<>();
@@ -45,7 +47,8 @@ public class ImageProcessing extends PApplet   {
     
     public void keyPressed() {
         if (keyCode == ENTER) {
-            cam.read();
+            if(playing) cam.pause(); else cam.loop();
+            playing = !playing;
         } else if (key == KeyEvent.VK_PERIOD) {
             houghNbLines--;
         } else if (key == KeyEvent.VK_MINUS) {
@@ -80,7 +83,7 @@ public class ImageProcessing extends PApplet   {
         //if(cam.available()) {
         //    cam.read();
         //}
-        //cam.read();
+        if(playing) cam.read();
         //cam.loadPixels();
         img = cam;
         //img = cam.get();
