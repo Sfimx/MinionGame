@@ -256,12 +256,9 @@ public class QuadGraph {
 
     /** Compute the area of a quad, and check it lays within a specific range
      */
-    public static boolean validArea(float area, float max_area, float min_area){
-                
-        boolean valid = (area < max_area && area > min_area);
-   
-        if (!valid) System.out.println("Area out of range");
-        
+   public static boolean validArea(float area, float max_area, float min_area) {                
+        boolean valid = (area < max_area && area > min_area);   
+        if (!valid) System.out.println("Area out of range");        
         return valid;
    }
     

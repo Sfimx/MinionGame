@@ -40,7 +40,7 @@ public class ImageProcessing extends PApplet {
     public void setup() {
         size(1280, 745);
         frameRate(60);
-        cam = new Movie(this, "C:\\Users\\Sfimx\\Documents\\testvideo.mp4");
+        cam = new Movie(this, "C:\\Users\\LPI\\Documents\\_EPFL\\BA3_4\\2eSem\\visual computing\\testvideo.mp4");
         cam.loop();
     }
 
@@ -134,14 +134,14 @@ public class ImageProcessing extends PApplet {
             minHueThresholdBar.update();
             maxHueThresholdBar.update();
 
-        minBrightnessThresholdBar.update();
-        maxBrightnessThresholdBar.update();
-
-        minSaturationThresholdBar.update();
-        maxSaturationThresholdBar.update();
-
-        minIntensityTresholdBar.update();
-        maxIntensityTresholdBar.update();
+            minBrightnessThresholdBar.update();
+            maxBrightnessThresholdBar.update();
+    
+            minSaturationThresholdBar.update();
+            maxSaturationThresholdBar.update();
+    
+            minIntensityTresholdBar.update();
+            maxIntensityTresholdBar.update();
 
             background(color(255, 255, 255));
             fill(0, 0, 0);
@@ -160,9 +160,7 @@ public class ImageProcessing extends PApplet {
             text("houghNbLines : " + houghNbLines, 650f, 495f + 10 * offset - 30);
 
             text("minQuadArea : " + minQuadArea, 800f, 495f + 8 * offset - 10);
-            text("maxQuadArea : " + maxQuadArea, 800f, 495f + 9 * offset - 20);
-
-            
+            text("maxQuadArea : " + maxQuadArea, 800f, 495f + 9 * offset - 20);            
         }
 
 
@@ -179,7 +177,10 @@ public class ImageProcessing extends PApplet {
         threshold.loadPixels();
         PImage blurred = convolute(blur, 99, threshold);
         blurred.loadPixels();;
-        PImage intensityTreshold = threshold(blurred, 0, 255f, minIntensityTresholdBar.getPos() * 255, maxIntensityTresholdBar.getPos() * 255, 0, 255f);
+        PImage intensityTreshold = threshold(blurred, 0, 255f, 
+                                             minIntensityTresholdBar.getPos() * 255,
+                                             maxIntensityTresholdBar.getPos() * 255, 
+                                             0, 255f);
         intensityTreshold.loadPixels();
         PImage sobel = sobel(intensityTreshold);
         sobel.loadPixels();
@@ -223,74 +224,68 @@ public class ImageProcessing extends PApplet {
             if (
                     QuadGraph.isConvex(c12, c23, c34, c41) &&
                             //QuadGraph.nonFlatQuad(c12, c23, c34, c41) &&
-                            QuadGraph.validArea(area, maxQuadArea, minQuadArea)
-                    ) {
+                    QuadGraph.validArea(area, maxQuadArea, minQuadArea)
+               ) {
                 newQuad.add(quad);
             }
         }
         
         for (int[] quad : newQuad) {             
                 
-                // draw once what we keep
+            PVector l1 = lines.get(quad[0]);
+            PVector l2 = lines.get(quad[1]);
+            PVector l3 = lines.get(quad[2]);
+            PVector l4 = lines.get(quad[3]);
 
-                
-                PVector l1 = lines.get(quad[0]);
-                PVector l2 = lines.get(quad[1]);
-                PVector l3 = lines.get(quad[2]);
-                PVector l4 = lines.get(quad[3]);
-
-                PVector c12 = intersection(l1, l2);
-                PVector c23 = intersection(l2, l3);
-                PVector c34 = intersection(l3, l4);
-                PVector c41 = intersection(l4, l1);
+            PVector c12 = intersection(l1, l2);
+            PVector c23 = intersection(l2, l3);
+            PVector c34 = intersection(l3, l4);
+            PVector c41 = intersection(l4, l1);
 
                 if(display) {
                     fill(255, 128, 0);
                     stroke(255, 128, 0);
 
-                    drawLine(l1.x, l1.y, img.width);
-                    drawLine(l2.x, l2.y, img.width);
-                    drawLine(l3.x, l3.y, img.width);
-                    drawLine(l4.x, l4.y, img.width);
+
+
+            ArrayList<PVector> temp = new ArrayList<>();
+
+            temp.add(c12);
+            temp.add(c23);
+            temp.add(c34);
+            temp.add(c41);
+
+            corners.add(temp);
+
+            if(display) {
+             // draw once what we keep
+                fill(255, 128, 0);
+                stroke(255, 128, 0);
+                drawLine(l1.x, l1.y, img.width);
+                drawLine(l2.x, l2.y, img.width);
+                drawLine(l3.x, l3.y, img.width);
+                drawLine(l4.x, l4.y, img.width);
+                noStroke();
+
+                if (shapeCount >= shapeColors.size()) {
+                    Random random = new Random();
+                    int newColor = color(
+                            min(255, random.nextInt(300)),
+                            min(255, random.nextInt(300)),
+                            min(255, random.nextInt(300)),
+                            120
+                    );
+                    shapeColors.add(newColor);
+                    fill(newColor);
+                } else {
+                    fill(shapeColors.get(shapeCount));
                 }
-
-
-
-                ArrayList<PVector> temp = new ArrayList<>();
-
-                temp.add(c12);
-                temp.add(c23);
-                temp.add(c34);
-                temp.add(c41);
-
-                corners.add(temp);
-
-                if(display) {
-                    noStroke();
-
-                    if (shapeCount >= shapeColors.size()) {
-                        Random random = new Random();
-                        int newColor = color(
-                                min(255, random.nextInt(300)),
-                                min(255, random.nextInt(300)),
-                                min(255, random.nextInt(300)),
-                                120
-                        );
-                        shapeColors.add(newColor);
-                        fill(newColor);
-                    } else {
-                        fill(shapeColors.get(shapeCount));
-                    }
-
-                    quad(c12.x, c12.y, c23.x, c23.y, c34.x, c34.y, c41.x, c41.y);
-                }
-
-                shapeCount++;
+                quad(c12.x, c12.y, c23.x, c23.y, c34.x, c34.y, c41.x, c41.y);
             }
-        
+            shapeCount++;
+        }        
 
         ArrayList<PVector> selected = null;
-
         
         while(!corners.isEmpty() && (selected == null || selected.size() != 4)) {
             if(selected != null && selected.size() != 4) {
@@ -299,6 +294,7 @@ public class ImageProcessing extends PApplet {
             selected = corners.get(random.nextInt(corners.size()));
         }
 
+                
         if(display) {
             accumulator.resize(300, 600);
             //image(accumulator, 800, 0);
@@ -340,9 +336,7 @@ public class ImageProcessing extends PApplet {
 
             minIntensityTresholdBar.display();
             maxIntensityTresholdBar.display();
-        }
-        
-        
+        }        
         
        /* if(selected != null) {
          // Sort corners so that they are ordered clockwise

@@ -1,5 +1,4 @@
 import cs211.imageprocessing.*;
-import jogamp.opengl.util.jpeg.JPEGDecoder;
 import processing.core.*;
 import processing.event.MouseEvent;
 import processing.video.Movie;
