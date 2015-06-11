@@ -232,9 +232,7 @@ public class ImageProcessing extends PApplet {
         for (int[] quad : newQuad) {             
                 
                 // draw once what we keep
-                if(display) {
-                    fill(255, 128, 0);
-                    stroke(255, 128, 0);
+
                 
                 PVector l1 = lines.get(quad[0]);
                 PVector l2 = lines.get(quad[1]);
@@ -246,11 +244,17 @@ public class ImageProcessing extends PApplet {
                 PVector c34 = intersection(l3, l4);
                 PVector c41 = intersection(l4, l1);
 
+                if(display) {
+                    fill(255, 128, 0);
+                    stroke(255, 128, 0);
+
                     drawLine(l1.x, l1.y, img.width);
                     drawLine(l2.x, l2.y, img.width);
                     drawLine(l3.x, l3.y, img.width);
                     drawLine(l4.x, l4.y, img.width);
                 }
+
+
 
                 ArrayList<PVector> temp = new ArrayList<>();
 
@@ -295,7 +299,6 @@ public class ImageProcessing extends PApplet {
             selected = corners.get(random.nextInt(corners.size()));
         }
 
-                for(PVector point : sortCorners(selected)) {
         if(display) {
             accumulator.resize(300, 600);
             //image(accumulator, 800, 0);
@@ -351,7 +354,7 @@ public class ImageProcessing extends PApplet {
             Collections.sort(selected,new CWComparator(center));
             Collections.sort(selected, new CWComparator(center));
         }*/
-
+        return sorted == null ? null : twoDThreeD.get3DRotations(sorted);
     }
 
     public PImage convolute(float[][] kernel, float weight, PImage img) {

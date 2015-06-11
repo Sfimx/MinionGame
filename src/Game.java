@@ -23,7 +23,7 @@ public class Game extends PApplet {
     float originRotateZ = 0;
     float rotateSpeed = 4;
 
-    int WIDTH = 900 + 640;
+    int WIDTH = 900;
     int HEIGHT = 700;
 
     float BOX_SIZE;
