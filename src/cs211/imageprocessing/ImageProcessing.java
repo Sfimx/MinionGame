@@ -15,6 +15,8 @@ public class ImageProcessing extends PApplet   {
     ArrayList<Integer> shapeColors;
     ArrayList<int[]> corners = new ArrayList<int[]>();
 
+    Random random = new Random();
+
     int offset = 25;
     int houghMinVotes = 145;
     int houghNeighborough = 21;
@@ -78,8 +80,10 @@ public class ImageProcessing extends PApplet   {
       }
 
     public void draw() {
-
-
+        getCorners(true);
+    }
+    
+    public List<PVector> getCorners(boolean display) {
         //println("cam.available(): " + cam.available());
         //if(cam.available()) {
         //    cam.read();
@@ -121,36 +125,41 @@ public class ImageProcessing extends PApplet   {
                 {0, -1, 0}
         };
 
-        minHueThresholdBar.update();
-        maxHueThresholdBar.update();
 
-        minBrightnessThresholdBar.update();
-        maxBrightnessThresholdBar.update();
+        if(display) {
 
-        minSaturationThresholdBar.update();
-        maxSaturationThresholdBar.update();
+            minHueThresholdBar.update();
+            maxHueThresholdBar.update();
 
-        minIntensityTresholdBar.update();
-        maxIntensityTresholdBar.update();
+            minBrightnessThresholdBar.update();
+            maxBrightnessThresholdBar.update();
+
+            minSaturationThresholdBar.update();
+            maxSaturationThresholdBar.update();
+
+            minIntensityTresholdBar.update();
+            maxIntensityTresholdBar.update();
 
 
-        background(color(255, 255, 255));
 
-        fill(0, 0, 0);
-        text("minHueTresholdBar : " +          minHueThresholdBar.getPos() * 256, 650f, 495f);
-        text("maxHueThresholdBar : "   +       maxHueThresholdBar.getPos() * 256, 650f, 495f + 1 * offset);
-        text("minBrightnessThresholdBar : " +  minBrightnessThresholdBar.getPos() * 256, 650f, 495f + 2 * offset);
-        text("maxBrightnessThresholdBar : " +  maxBrightnessThresholdBar.getPos() * 256, 650f, 495f + 3 * offset);
-        text("minSaturationThresholdBar : " +  minSaturationThresholdBar.getPos() * 256, 650f, 495f + 4 * offset);
-        text("maxSaturationThresholdBar : " +  maxSaturationThresholdBar.getPos() * 256, 650f, 495f + 5 * offset);
-        text("minIntensityTresholdBar : " +    minIntensityTresholdBar.getPos() * 256, 650f, 495f + 6 * offset);
-        text("maxIntensityTresholdBar : " +    maxIntensityTresholdBar.getPos() * 256, 650f, 495f + 7 * offset);
-        text("houghMinVotes : " +              houghMinVotes, 650f, 495f + 8 * offset-10);
-        text("houghNeighborough : " +          houghNeighborough, 650f, 495f + 9 * offset-20);
-        text("houghNbLines : " +               houghNbLines, 650f, 495f + 10 * offset-30);
-        
-        text("minQuadArea : " +                minQuadArea, 800f, 495f + 8 * offset-10);
-        text("maxQuadArea : " +                maxQuadArea, 800f, 495f + 9 * offset-20);
+            text("minHueTresholdBar : " + minHueThresholdBar.getPos() * 256, 650f, 495f);
+            text("maxHueThresholdBar : " + maxHueThresholdBar.getPos() * 256, 650f, 495f + 1 * offset);
+            text("minBrightnessThresholdBar : " + minBrightnessThresholdBar.getPos() * 256, 650f, 495f + 2 * offset);
+            text("maxBrightnessThresholdBar : " + maxBrightnessThresholdBar.getPos() * 256, 650f, 495f + 3 * offset);
+            text("minSaturationThresholdBar : " + minSaturationThresholdBar.getPos() * 256, 650f, 495f + 4 * offset);
+            text("maxSaturationThresholdBar : " + maxSaturationThresholdBar.getPos() * 256, 650f, 495f + 5 * offset);
+            text("minIntensityTresholdBar : " + minIntensityTresholdBar.getPos() * 256, 650f, 495f + 6 * offset);
+            text("maxIntensityTresholdBar : " + maxIntensityTresholdBar.getPos() * 256, 650f, 495f + 7 * offset);
+            text("houghMinVotes : " + houghMinVotes, 650f, 495f + 8 * offset - 10);
+            text("houghNeighborough : " + houghNeighborough, 650f, 495f + 9 * offset - 20);
+            text("houghNbLines : " + houghNbLines, 650f, 495f + 10 * offset - 30);
+
+            text("minQuadArea : " + minQuadArea, 800f, 495f + 8 * offset - 10);
+            text("maxQuadArea : " + maxQuadArea, 800f, 495f + 9 * offset - 20);
+
+            background(color(255, 255, 255));
+            fill(0, 0, 0);
+        }
 
         PImage threshold = threshold(
                 img,
@@ -166,7 +175,7 @@ public class ImageProcessing extends PApplet   {
         PImage sobel = sobel(intensityTreshold);
 
         image(img, 0, 0);
-        
+
         //image(blurred, 1600, 0);
 
 
@@ -180,182 +189,138 @@ public class ImageProcessing extends PApplet   {
         float shapeMaxArea = 0f;
         int shapeCount = 0;
         int shapeRawCount = 0;
-        List<PVector> corners = getCorners();
+        ArrayList<ArrayList<PVector>> corners = new ArrayList<>();
 
-        if(corners.size() == 4) {
+        for (int[] quad : cycles) {
 
-            for (int[] quad : cycles) {
-
-                shapeRawCount++;
-
-
-                PVector l1 = lines.get(quad[0]);
-                PVector l2 = lines.get(quad[1]);
-                PVector l3 = lines.get(quad[2]);
-                PVector l4 = lines.get(quad[3]);
-
-
-                PVector c12 = intersection(l1, l2);
-                PVector c23 = intersection(l2, l3);
-                PVector c34 = intersection(l3, l4);
-                PVector c41 = intersection(l4, l1);
-
-                //TODO check if adjustement needed here
-                if (
-                   QuadGraph.isConvex(c12, c23, c34, c41) &&
-                //QuadGraph.nonFlatQuad(c12, c23, c34, c41) &&
-                QuadGraph.validArea(c12, c23, c34, c41, maxQuadArea, minQuadArea)
-                        ) {
-                    float shapeArea = c12.dist(c23) * c12.dist(c41);
-
-//                if(shapeArea < shapeMaxArea) {
-//                    //continue;
-//                }
-
-                    // draw once what we keep
-                    fill(255, 128, 0);
-                    stroke(255, 128, 0);
-
-
-                    drawLine(l1.x, l1.y, img.width);
-                    drawLine(l2.x, l2.y, img.width);
-                    drawLine(l3.x, l3.y, img.width);
-                    drawLine(l4.x, l4.y, img.width);
-
-                    c12 = corners.get(0);
-                    c23 = corners.get(1);
-                    c34 = corners.get(2);
-                    c41 = corners.get(3);
-
-                    ellipse(c12.x, c12.y, 10, 10);
-                    text("papayaaaaaa" + 1, c12.x, c12.y);
-                    ellipse(c23.x, c23.y, 10, 10);
-                    text("papayaaaaaa" + 2, c23.x, c23.y);
-                    ellipse(c34.x, c34.y, 10, 10);
-                    text("papayaaaaaa" + 3, c34.x, c34.y);
-                    ellipse(c41.x, c41.y, 10, 10);
-                    text("papayaaaaaa" + 4, c41.x, c41.y);
-
-                //shapeMaxArea = shapeArea;
-                    noStroke();
-
-                    if (shapeCount >= shapeColors.size()) {
-                        Random random = new Random();
-                        int newColor = color(
-                                min(255, random.nextInt(300)),
-                                min(255, random.nextInt(300)),
-                                min(255, random.nextInt(300)),
-                            120
-                        );
-                        shapeColors.add(newColor);
-                        fill(newColor);
-                    } else {
-                        fill(shapeColors.get(shapeCount));
-                    }
-
-                    shapeCount++;
-                    quad(c12.x, c12.y, c23.x, c23.y, c34.x, c34.y, c41.x, c41.y);
-
-                }
-            }
-
-
-            accumulator.resize(300, 600);
-            //image(accumulator, 800, 0);
-            image(sobel, 640, 0);
-
-            TwoDThreeD twoThree = new TwoDThreeD(img.width, img.height);
-
-            if (!corners.isEmpty()) {
-                PVector rotations = twoThree.get3DRotations(corners);
-
-                println("rx: " + degrees(rotations.x));
-                println("ry: " + degrees(rotations.y));
-                println("rz: " + degrees(rotations.z));
-            }
-        }
-
-        minHueThresholdBar.display();
-        maxHueThresholdBar.display();
-
-        minBrightnessThresholdBar.display();
-        maxBrightnessThresholdBar.display();
-
-        minSaturationThresholdBar.display();
-        maxSaturationThresholdBar.display();
-
-        minIntensityTresholdBar.display();
-        maxIntensityTresholdBar.display();
-    }
-    
-    public List<PVector> getCorners() {
-    	ArrayList<PVector> corners = new ArrayList<PVector>(); 
-    	
-    	float[][] blur = {
-                {9,12,9},
-                {12,15,12},
-                {9,12,9}
-        };
- 
-    	PImage threshold = threshold(
-                img,
-                minHueThresholdBar.getPos() * 256,
-                maxHueThresholdBar.getPos() * 256,
-                minBrightnessThresholdBar.getPos() * 256,
-                maxBrightnessThresholdBar.getPos() * 256,
-                minSaturationThresholdBar.getPos() * 256,
-                maxSaturationThresholdBar.getPos() * 256
-        );
-        PImage blurred = convolute(blur, 99, threshold);
-        PImage intensityTreshold = threshold(blurred, 0, 255f, minIntensityTresholdBar.getPos() * 255, maxIntensityTresholdBar.getPos() * 255, 0, 255f);
-        PImage sobel = sobel(intensityTreshold);
-
-
-        ArrayList<PVector> lines = new ArrayList<>();
-        PImage accumulator = hough(sobel, 200, 10, 6, lines);
-        QuadGraph quadGraph = new QuadGraph();
-        quadGraph.build(lines, img.width, img.height);
-        List<int[]> cycles = quadGraph.findCycles();
-
-
-        float shapeMaxArea = 0f;
-        int shapeCount = 0;
-        int shapeRawCount = 0;
-
-        for(int[] quad : cycles) {
             shapeRawCount++;
-            
+
 
             PVector l1 = lines.get(quad[0]);
             PVector l2 = lines.get(quad[1]);
             PVector l3 = lines.get(quad[2]);
             PVector l4 = lines.get(quad[3]);
 
+
             PVector c12 = intersection(l1, l2);
             PVector c23 = intersection(l2, l3);
             PVector c34 = intersection(l3, l4);
             PVector c41 = intersection(l4, l1);
-            
-        
+
+            //TODO check if adjustement needed here
             if (
-                   QuadGraph.isConvex(c12, c23, c34, c41)
-                && QuadGraph.nonFlatQuad(c12, c23, c34, c41)
-            ) {
+                    QuadGraph.isConvex(c12, c23, c34, c41) &&
+                            //QuadGraph.nonFlatQuad(c12, c23, c34, c41) &&
+                            QuadGraph.validArea(c12, c23, c34, c41, maxQuadArea, minQuadArea)
+                    ) {
                 float shapeArea = c12.dist(c23) * c12.dist(c41);
 
-                if(shapeArea < shapeMaxArea) {
-                    continue; 
-                }   
-                corners.clear(); 
-                corners.add(c12); 
-                corners.add(c23); 
-                corners.add(c34);
-                corners.add(c41); 
-               shapeCount++;
+//                if(shapeArea < shapeMaxArea) {
+//                    //continue;
+//                }
+
+                // draw once what we keep
+                fill(255, 128, 0);
+                stroke(255, 128, 0);
+
+
+                drawLine(l1.x, l1.y, img.width);
+                drawLine(l2.x, l2.y, img.width);
+                drawLine(l3.x, l3.y, img.width);
+                drawLine(l4.x, l4.y, img.width);
+
+                ArrayList<PVector> temp = new ArrayList<>();
+
+                temp.add(c12);
+                temp.add(c23);
+                temp.add(c34);
+                temp.add(c41);
+
+                corners.add(temp);
+
+
+
+                //shapeMaxArea = shapeArea;
+                noStroke();
+
+                if (shapeCount >= shapeColors.size()) {
+                    Random random = new Random();
+                    int newColor = color(
+                            min(255, random.nextInt(300)),
+                            min(255, random.nextInt(300)),
+                            min(255, random.nextInt(300)),
+                            120
+                    );
+                    shapeColors.add(newColor);
+                    fill(newColor);
+                } else {
+                    fill(shapeColors.get(shapeCount));
+                }
+
+                shapeCount++;
+
+                if(display) {
+                    quad(c12.x, c12.y, c23.x, c23.y, c34.x, c34.y, c41.x, c41.y);
+                }
+
             }
-            
         }
-        return sortCorners(corners); 
+
+
+        ArrayList<PVector> selected = null;
+
+        while(!corners.isEmpty() && (selected == null || selected.size() != 4)) {
+            if(selected != null && selected.size() != 4) {
+                corners.remove(selected);
+            }
+            selected = corners.get(random.nextInt(corners.size()));
+        }
+
+        if(selected != null) {
+            if(display) {
+                int i = 0;
+                for(PVector point : selected) {
+                    fill(255, 0, 0);
+                    ellipse(point.x, point.y, 10, 10);
+                    text("papayaaaaaa" + i, point.x, point.y);
+                    i++;
+                }
+            }
+        }
+
+
+        if(display) {
+            accumulator.resize(300, 600);
+            //image(accumulator, 800, 0);
+            image(sobel, 640, 0);
+        }
+
+        TwoDThreeD twoThree = new TwoDThreeD(img.width, img.height);
+
+        if (selected != null && selected.size() != 4) {
+            PVector rotations = twoThree.get3DRotations(selected);
+
+            println("rx: " + degrees(rotations.x));
+            println("ry: " + degrees(rotations.y));
+            println("rz: " + degrees(rotations.z));
+        }
+
+        if(display) {
+            minHueThresholdBar.display();
+            maxHueThresholdBar.display();
+
+            minBrightnessThresholdBar.display();
+            maxBrightnessThresholdBar.display();
+
+            minSaturationThresholdBar.display();
+            maxSaturationThresholdBar.display();
+
+            minIntensityTresholdBar.display();
+            maxIntensityTresholdBar.display();
+        }
+
+
+        return selected == null ? null : sortCorners(selected);
     }
 
     public PImage convolute(float[][] kernel, float weight, PImage img) {
