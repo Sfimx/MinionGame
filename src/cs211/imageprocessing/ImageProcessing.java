@@ -14,33 +14,32 @@ public class ImageProcessing extends PApplet   {
     Movie cam;
     ArrayList<Integer> shapeColors;
 
-    HScrollbar maxBar = new HScrollbar(this, 0, 600, 640, 20);
+    int offset = 35;
+    HScrollbar minHueThresholdBar = new HScrollbar(this, 0, 480, 640, 20).setPos(100/256.0F);
+    HScrollbar maxHueThresholdBar = new HScrollbar(this, 0, 480 + 1 * offset, 640, 20).setPos(136/256.0F);
 
-    HScrollbar minHueThresholdBar = new HScrollbar(this, 0, 640, 640, 20).setPos(100/256.0F);
-    HScrollbar maxHueThresholdBar = new HScrollbar(this, 0, 680, 640, 20).setPos(136/256.0F);
+    HScrollbar minBrightnessThresholdBar = new HScrollbar(this, 0, 480 + 2 * offset, 640, 20).setPos(34/256.0F);
+    HScrollbar maxBrightnessThresholdBar = new HScrollbar(this, 0, 480 + 3 * offset, 640, 20).setPos(256/256.0F);
 
-    HScrollbar minBrightnessThresholdBar = new HScrollbar(this, 0, 720, 640, 20).setPos(34/256.0F);
-    HScrollbar maxBrightnessThresholdBar = new HScrollbar(this, 0, 760, 640, 20).setPos(256/256.0F);
+    HScrollbar minSaturationThresholdBar = new HScrollbar(this, 0, 480 + 4 * offset, 640, 20).setPos(30/256.0F);
+    HScrollbar maxSaturationThresholdBar = new HScrollbar(this, 0, 480 + 5 * offset, 640, 20).setPos(256/256.0F);
 
-    HScrollbar minSaturationThresholdBar = new HScrollbar(this, 0, 800, 640, 20).setPos(30/256.0F);
-    HScrollbar maxSaturationThresholdBar = new HScrollbar(this, 0, 840, 640, 20).setPos(256/256.0F);
-
-    HScrollbar imageSelectionBar = new HScrollbar(this, 0, 880, 640, 20);
-
-    HScrollbar minIntensityTresholdBar = new HScrollbar(this, 0, 920, 640, 20).setPos(50/255f);
-    HScrollbar maxIntensityTresholdBar = new HScrollbar(this, 0, 960, 640, 20).setPos(190/255f);
+    HScrollbar minIntensityTresholdBar = new HScrollbar(this, 0, 480 + 6 * offset, 640, 20).setPos(50/255f);
+    HScrollbar maxIntensityTresholdBar = new HScrollbar(this, 0, 480 + 7 * offset, 640, 20).setPos(190/255f);
 
     public void setup() {
-        size(1900, 600);
+        size(1280, 745);
         shapeColors = new ArrayList<>();
 
-        frameRate(10);
+        frameRate(60);
         img = loadImage("board1.jpg");
         cam = new Movie(this, "C:\\Users\\Sfimx\\Documents\\testvideo.mp4");
         cam.loop();
     }
 
     public void draw() {
+
+
         println("cam.available(): " + cam.available());
         //if(cam.available()) {
         //    cam.read();
@@ -82,7 +81,6 @@ public class ImageProcessing extends PApplet   {
                 {0, -1, 0}
         };
 
-        maxBar.update();
         minHueThresholdBar.update();
         maxHueThresholdBar.update();
 
@@ -92,12 +90,21 @@ public class ImageProcessing extends PApplet   {
         minSaturationThresholdBar.update();
         maxSaturationThresholdBar.update();
 
-        imageSelectionBar.update();
-
         minIntensityTresholdBar.update();
         maxIntensityTresholdBar.update();
 
+
         background(color(255, 255, 255));
+
+        fill(0, 0, 0);
+        text("minHueTresholdBar : " +          minHueThresholdBar.getPos() * 256, 650f, 495f);
+        text("maxHueThresholdBar : "   +       maxHueThresholdBar.getPos() * 256, 650f, 495f + 1 * offset);
+        text("minBrightnessThresholdBar : " +  minBrightnessThresholdBar.getPos() * 256, 650f, 495f + 2 * offset);
+        text("maxBrightnessThresholdBar : " +  maxBrightnessThresholdBar.getPos() * 256, 650f, 495f + 3 * offset);
+        text("minSaturationThresholdBar : " +  minSaturationThresholdBar.getPos() * 256, 650f, 495f + 4 * offset);
+        text("maxSaturationThresholdBar : " +  maxSaturationThresholdBar.getPos() * 256, 650f, 495f + 5 * offset);
+        text("minIntensityTresholdBar : " +    minIntensityTresholdBar.getPos() * 256, 650f, 495f + 6 * offset);
+        text("maxIntensityTresholdBar : " +    maxIntensityTresholdBar.getPos() * 256, 650f, 495f + 7 * offset);
 
         PImage threshold = threshold(
                 img,
@@ -147,7 +154,7 @@ public class ImageProcessing extends PApplet   {
                 float shapeArea = c12.dist(c23) * c12.dist(c41);
 
                 if(shapeArea < shapeMaxArea) {
-                    continue;
+                    //continue;
                 }
 
                 // draw once what we keep
@@ -188,11 +195,9 @@ public class ImageProcessing extends PApplet   {
         }
 
         accumulator.resize(300, 600);
-        image(accumulator, 800, 0);
-        image(sobel, 1100, 0);
+        //image(accumulator, 800, 0);
+        image(sobel, 640, 0);
 
-
-        maxBar.display();
         minHueThresholdBar.display();
         maxHueThresholdBar.display();
 
@@ -201,8 +206,6 @@ public class ImageProcessing extends PApplet   {
 
         minSaturationThresholdBar.display();
         maxSaturationThresholdBar.display();
-
-        imageSelectionBar.display();
 
         minIntensityTresholdBar.display();
         maxIntensityTresholdBar.display();
