@@ -29,7 +29,7 @@ public class HScrollbar {
 	 * @param h
 	 *            The height of the bar in pixels
 	 */
-	HScrollbar(PApplet p, float x, float y, float w, float h) {
+	public HScrollbar(PApplet p, float x, float y, float w, float h) {
 		parent = p;
 		barWidth = w;
 		barHeight = h;
@@ -40,8 +40,8 @@ public class HScrollbar {
 		sliderPositionMin = xPosition;
 		sliderPositionMax = xPosition + barWidth - barHeight;
 	}
-	
-	HScrollbar setPos(float value)//between [0;1]
+
+	public HScrollbar setPos(float value)//between [0;1]
 	{
 	    sliderPosition = xPosition+value*(barWidth-barHeight);
 	    newSliderPosition = sliderPosition;
@@ -51,7 +51,7 @@ public class HScrollbar {
 	/**
 	 * @brief Updates the state of the scrollbar according to the mouse movement
 	 */
-	void update() {
+	public void update() {
 		if (isMouseOver()) {
 			mouseOver = true;
 		} else {
@@ -85,7 +85,7 @@ public class HScrollbar {
 	 * 
 	 * @return val clamped into the interval [minVal, maxVal]
 	 */
-	float constrain(float val, float minVal, float maxVal) {
+	public float constrain(float val, float minVal, float maxVal) {
 		return PApplet.min(PApplet.max(val, minVal), maxVal);
 	}
 
@@ -94,7 +94,7 @@ public class HScrollbar {
 	 * 
 	 * @return Whether the mouse is hovering the scrollbar
 	 */
-	boolean isMouseOver() {
+	public boolean isMouseOver() {
 		if (parent.mouseX > xPosition && parent.mouseX < xPosition + barWidth
 				&& parent.mouseY > yPosition && parent.mouseY < yPosition + barHeight) {
 			return true;
@@ -106,7 +106,7 @@ public class HScrollbar {
 	/**
 	 * @brief Draws the scrollbar in its current state
 	 */
-	void display() {
+	public void display() {
 		parent.noStroke();
 		parent.fill(204);
 		parent.rect(xPosition, yPosition, barWidth, barHeight);
@@ -124,7 +124,7 @@ public class HScrollbar {
 	 * @return The slider position in the interval [0,1] corresponding to
 	 *         [leftmost position, rightmost position]
 	 */
-	float getPos() {
+	public float getPos() {
 		return (sliderPosition - xPosition) / (barWidth - barHeight);
 	}
 }

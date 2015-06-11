@@ -8,11 +8,10 @@ import processing.video.Movie;
 import java.awt.event.KeyEvent;
 import java.util.*;
 
-public class ImageProcessing extends PApplet   {
-    PImage img;
+public class ImageProcessing extends PApplet {
     //Capture cam;
     Movie cam;
-    ArrayList<Integer> shapeColors;
+    ArrayList<Integer> shapeColors = new ArrayList<>();
     ArrayList<int[]> corners = new ArrayList<int[]>();
 
     Random random = new Random();
@@ -23,7 +22,7 @@ public class ImageProcessing extends PApplet   {
     int houghNbLines = 6;
     int minQuadArea =  42800;
     int maxQuadArea = 164000;
-    
+
     HScrollbar minHueThresholdBar = new HScrollbar(this, 0, 480, 640, 20).setPos(80/256.0F);
     HScrollbar maxHueThresholdBar = new HScrollbar(this, 0, 480 + 1 * offset, 640, 20).setPos(137/256.0F);
 
@@ -40,14 +39,11 @@ public class ImageProcessing extends PApplet   {
 
     public void setup() {
         size(1280, 745);
-        shapeColors = new ArrayList<>();
-
         frameRate(60);
-        img = loadImage("board4.jpg");
-        cam = new Movie(this, "C:\\Users\\LPI\\Documents\\_EPFL\\BA3_4\\2eSem\\visual computing\\testvideo.mp4");
+        cam = new Movie(this, "C:\\Users\\Sfimx\\Documents\\testvideo.mp4");
         cam.loop();
     }
-    
+
     public void keyPressed() {
         if (keyCode == ENTER) {
             if(playing) cam.pause(); else cam.loop();
@@ -64,8 +60,8 @@ public class ImageProcessing extends PApplet   {
             maxQuadArea-=100;
         } else if (key == 's') {
             maxQuadArea+=100;
-        } 
-        
+        }
+
         else if (key == CODED) {
           if (keyCode == UP) {
             houghMinVotes += 5;
@@ -75,23 +71,28 @@ public class ImageProcessing extends PApplet   {
               houghNeighborough -= 2;
           } else if (keyCode == RIGHT) {
               houghNeighborough += 2;
-          } 
-        }  
+          }
+        }
       }
 
     public void draw() {
-        getCorners(true);
+        cam.read();
+        getRotation(true, cam, new TwoDThreeD(cam.width, cam.height));
     }
-    
-    public List<PVector> getCorners(boolean display) {
+
+
+    public PVector getRotation(boolean display, PImage img, TwoDThreeD twoDThreeD) {
         //println("cam.available(): " + cam.available());
         //if(cam.available()) {
         //    cam.read();
         //}
-        if(playing) cam.read();
+        //if(playing) cam.read();
         //cam.loadPixels();
-        img = cam;
+        //img = cam;
         //img = cam.get();
+
+        if(img == null)
+            return null;
 
 
         float[][] kernel = {
@@ -125,20 +126,20 @@ public class ImageProcessing extends PApplet   {
                 {0, -1, 0}
         };
 
+        minHueThresholdBar.update();
+        maxHueThresholdBar.update();
+
+        minBrightnessThresholdBar.update();
+        maxBrightnessThresholdBar.update();
+
+        minSaturationThresholdBar.update();
+        maxSaturationThresholdBar.update();
+
+        minIntensityTresholdBar.update();
+        maxIntensityTresholdBar.update();
+
 
         if(display) {
-
-            minHueThresholdBar.update();
-            maxHueThresholdBar.update();
-
-            minBrightnessThresholdBar.update();
-            maxBrightnessThresholdBar.update();
-
-            minSaturationThresholdBar.update();
-            maxSaturationThresholdBar.update();
-
-            minIntensityTresholdBar.update();
-            maxIntensityTresholdBar.update();
 
 
 
@@ -161,6 +162,8 @@ public class ImageProcessing extends PApplet   {
             fill(0, 0, 0);
         }
 
+
+        img.loadPixels();
         PImage threshold = threshold(
                 img,
                 minHueThresholdBar.getPos() * 256,
@@ -170,11 +173,15 @@ public class ImageProcessing extends PApplet   {
                 minSaturationThresholdBar.getPos() * 256,
                 maxSaturationThresholdBar.getPos() * 256
         );
+        threshold.loadPixels();
         PImage blurred = convolute(blur, 99, threshold);
+        blurred.loadPixels();;
         PImage intensityTreshold = threshold(blurred, 0, 255f, minIntensityTresholdBar.getPos() * 255, maxIntensityTresholdBar.getPos() * 255, 0, 255f);
+        intensityTreshold.loadPixels();
         PImage sobel = sobel(intensityTreshold);
+        sobel.loadPixels();
 
-        image(img, 0, 0);
+        if(display) image(img, 0, 0);
 
         //image(blurred, 1600, 0);
 
@@ -220,14 +227,16 @@ public class ImageProcessing extends PApplet   {
 //                }
 
                 // draw once what we keep
-                fill(255, 128, 0);
-                stroke(255, 128, 0);
+                if(display) {
+                    fill(255, 128, 0);
+                    stroke(255, 128, 0);
 
 
-                drawLine(l1.x, l1.y, img.width);
-                drawLine(l2.x, l2.y, img.width);
-                drawLine(l3.x, l3.y, img.width);
-                drawLine(l4.x, l4.y, img.width);
+                    drawLine(l1.x, l1.y, img.width);
+                    drawLine(l2.x, l2.y, img.width);
+                    drawLine(l3.x, l3.y, img.width);
+                    drawLine(l4.x, l4.y, img.width);
+                }
 
                 ArrayList<PVector> temp = new ArrayList<>();
 
@@ -239,32 +248,31 @@ public class ImageProcessing extends PApplet   {
                 corners.add(temp);
 
 
-
                 //shapeMaxArea = shapeArea;
-                noStroke();
-
-                if (shapeCount >= shapeColors.size()) {
-                    Random random = new Random();
-                    int newColor = color(
-                            min(255, random.nextInt(300)),
-                            min(255, random.nextInt(300)),
-                            min(255, random.nextInt(300)),
-                            120
-                    );
-                    shapeColors.add(newColor);
-                    fill(newColor);
-                } else {
-                    fill(shapeColors.get(shapeCount));
-                }
-
-                shapeCount++;
-
                 if(display) {
+                    noStroke();
+
+                    if (shapeCount >= shapeColors.size()) {
+                        Random random = new Random();
+                        int newColor = color(
+                                min(255, random.nextInt(300)),
+                                min(255, random.nextInt(300)),
+                                min(255, random.nextInt(300)),
+                                120
+                        );
+                        shapeColors.add(newColor);
+                        fill(newColor);
+                    } else {
+                        fill(shapeColors.get(shapeCount));
+                    }
+
                     quad(c12.x, c12.y, c23.x, c23.y, c34.x, c34.y, c41.x, c41.y);
                 }
 
+                shapeCount++;
             }
         }
+
 
 
         ArrayList<PVector> selected = null;
@@ -276,33 +284,33 @@ public class ImageProcessing extends PApplet   {
             selected = corners.get(random.nextInt(corners.size()));
         }
 
-        if(selected != null) {
-            if(display) {
-                int i = 0;
-                for(PVector point : selected) {
-                    fill(255, 0, 0);
-                    ellipse(point.x, point.y, 10, 10);
-                    text("papayaaaaaa" + i, point.x, point.y);
-                    i++;
-                }
-            }
-        }
-
-
         if(display) {
             accumulator.resize(300, 600);
             //image(accumulator, 800, 0);
             image(sobel, 640, 0);
         }
 
-        TwoDThreeD twoThree = new TwoDThreeD(img.width, img.height);
 
-        if (selected != null && selected.size() != 4) {
-            PVector rotations = twoThree.get3DRotations(selected);
+        PVector rotations = null;
+        List<PVector> sorted = null;
+
+        if (selected != null && selected.size() == 4) {
+            rotations = twoDThreeD.get3DRotations(selected);
 
             println("rx: " + degrees(rotations.x));
             println("ry: " + degrees(rotations.y));
             println("rz: " + degrees(rotations.z));
+
+            sorted = sortCorners(selected);
+            if(display) {
+                int i = 0;
+                for(PVector point : sorted) {
+                    fill(255, 0, 0);
+                    ellipse(point.x, point.y, 10, 10);
+                    text("papayaaaaaa" + i, point.x, point.y);
+                    i++;
+                }
+            }
         }
 
         if(display) {
@@ -320,7 +328,8 @@ public class ImageProcessing extends PApplet   {
         }
 
 
-        return selected == null ? null : sortCorners(selected);
+        //return rotations;
+        return selected == null ? null : twoDThreeD.get3DRotations(sorted);
     }
 
     public PImage convolute(float[][] kernel, float weight, PImage img) {
@@ -423,7 +432,9 @@ public class ImageProcessing extends PApplet   {
             float brighnessMin, float brightnessMax,
             float saturationMin, float saturationMax
     ) {
+
         PImage result = createImage(img.width, img.height, ALPHA);
+
 
         for(int i = 0; i < img.width * img.height; i++) {
             float hue = hue(img.pixels[i]);
@@ -450,13 +461,13 @@ public class ImageProcessing extends PApplet   {
         int rDim = (int) (((edgeImg.width + edgeImg.height) * 2 + 1) / discretizationStepsR);
 
         int[] accumulator = new int[(phiDim + 2) * (rDim + 2)];
-        
+
      // pre-compute the sin and cos values
         float[] tabSin = new float[phiDim];
         float[] tabCos = new float[phiDim];
         float ang = 0;
         float inverseR = 1.f / discretizationStepsR;
-        for (int accPhi = 0; accPhi < phiDim; ang += discretizationStepsPhi, accPhi++) 
+        for (int accPhi = 0; accPhi < phiDim; ang += discretizationStepsPhi, accPhi++)
         {
             // we can also pre-multiply by (1/discretizationStepsR) since we need it in the Hough loop
             tabSin[accPhi] = (float) (Math.sin(ang) * inverseR);
@@ -484,7 +495,7 @@ public class ImageProcessing extends PApplet   {
             houghImg.pixels[i] = color(min(255, accumulator[i]));
         }
 
-        
+
         ArrayList<Integer> bestCandidates = new ArrayList<Integer>();
 
 
@@ -613,8 +624,8 @@ public class ImageProcessing extends PApplet   {
 
         return new PVector(x, y);
     }
-    
-    
+
+
     public static List<PVector> sortCorners(List<PVector> quad){
         if(quad.isEmpty())
             return new ArrayList<>();
@@ -629,20 +640,20 @@ public class ImageProcessing extends PApplet   {
     	// origin (0,0) of the image.
     	//
     	// You can use Collections.rotate to shift the corners inside the quad.
-    	
-    	int index = 0; 
+
+    	int index = 0;
     	PVector origine = new PVector(0,0,0);
-    	float min = Integer.MAX_VALUE; 
-    	
-    	for(int i = 0; i < quad.size(); i++){ 
+    	float min = Integer.MAX_VALUE;
+
+    	for(int i = 0; i < quad.size(); i++){
     		if (origine.dist(quad.get(i))< min) {
-    			min = origine.dist(quad.get(i)); 
-    			index = i; 
+    			min = origine.dist(quad.get(i));
+    			index = i;
     		}
     	}
-    	
+
     	Collections.rotate(quad, index);
-    	
+
     	return quad;
     }
 

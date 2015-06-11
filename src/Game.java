@@ -1,11 +1,10 @@
-import processing.core.PApplet;
-import processing.core.PGraphics;
-import processing.core.PShape;
-import processing.core.PVector;
+import cs211.imageprocessing.*;
+import jogamp.opengl.util.jpeg.JPEGDecoder;
+import processing.core.*;
 import processing.event.MouseEvent;
+import processing.video.Movie;
 
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
 
 public class Game extends PApplet {
 
@@ -24,7 +23,7 @@ public class Game extends PApplet {
     float originRotateZ = 0;
     float rotateSpeed = 4;
 
-    int WIDTH = 900;
+    int WIDTH = 900 + 640;
     int HEIGHT = 700;
 
     float BOX_SIZE;
@@ -56,12 +55,19 @@ public class Game extends PApplet {
     Dashboard dashboard;
     TopView topView; 
     Scoreboard scoreboard; 
-    BarChart barChart; 
-    HScrollbar scroll; 
+    BarChart barChart;
+    HScrollbar scroll;
+
+    ImageProcessing pouet;
+    TwoDThreeD twoDThreeD;
     
     //List with all the PGraphics that should be on the dashboard
-    ArrayList<Element> elements; 
-    
+    ArrayList<Element> elements;
+
+
+    //Capture cam;
+    Movie cam;
+
     public void setup() {
         size(WIDTH, HEIGHT, P3D);
         BOX_SIZE = (height / 2 > width) ? width / 2 : height / 2;
@@ -79,16 +85,23 @@ public class Game extends PApplet {
         editorCylinder = new PVector();
         editorCylinder.z = -BOX_HEIGHT/2-CYLINDER_HEIGHT;
         eyeZ = (height/2.0f)/tan(radians(30));
-        elements = new ArrayList<Element>(); 
+        elements = new ArrayList<Element>();
         dashboard = new Dashboard(width, DASHBOARD_HEIGHT, elements);
-        topView = new TopView(Math.round(BOX_SIZE/2), mover); 
+        topView = new TopView(Math.round(BOX_SIZE/2), mover);
         elements.add(topView);
         scoreboard = new Scoreboard(Math.round(BOX_SIZE/3), Math.round(BOX_SIZE/2), mover);
         elements.add(scoreboard);
         scroll = new HScrollbar(this, -100F, HEIGHT/2.0F - 30.0F, 2.4F*WIDTH/4.0F, 20.F, WIDTH/2.0F, HEIGHT/2.0F);
         barChart = new BarChart(width - Math.round(BOX_SIZE), Math.round(BOX_SIZE/2), scoreboard, scroll);
         elements.add(barChart);
-        
+
+        pouet = new ImageProcessing();
+        pouet.g = this.g;
+
+        cam = new Movie(this, "C:\\Users\\Sfimx\\Documents\\testvideo.mp4");
+        cam.loop();
+
+        twoDThreeD = new TwoDThreeD(cam.width, cam.height);
     }
 
     public void draw() {
@@ -103,6 +116,8 @@ public class Game extends PApplet {
         );
 
         fill(220, 220, 250);
+
+        cam.read();
 
 
         if(!editMode && !leaveEditModeAnimation && !editModeAnimation) {
@@ -165,11 +180,21 @@ public class Game extends PApplet {
 
         mover.display(SPHERE_RADIUS);
 
+
         noFill();
         drawObstacles();
 
 
+        //PVector rotation = pouet.getRotation(false, cam, twoDThreeD);
+        PVector rotation = pouet.getRotation(false, cam, twoDThreeD);
+        image(cam, 0, -HEIGHT/2);
+        println(rotation);
+        if (rotation != null) {
 
+            rotateX = map(rotation.y, -PI, PI, -MAX_ANGLE, MAX_ANGLE);
+            //rotateY = rotation.y;
+            rotateZ = map(rotation.z, -PI, PI, -MAX_ANGLE, MAX_ANGLE);
+        }
     }
 
     public void mousePressed() {
@@ -635,7 +660,7 @@ public class Game extends PApplet {
     	private final int size = 10; 
     	private final ArrayList<Integer> numberOfSquares = new ArrayList<Integer>(); 
     	private int counter = 0;
-    	private HScrollbar scroll; 
+    	private HScrollbar scroll;
     	
     	public BarChart(int width, int height, Scoreboard scoreboard,HScrollbar scroll) {
     		this.width = width; 

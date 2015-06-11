@@ -2,7 +2,7 @@ package cs211.imageprocessing;
 
 import java.util.Comparator;
 
-class HoughComparator implements Comparator<Integer> {
+public class HoughComparator implements Comparator<Integer> {
     int[] accumulator;
     public HoughComparator(int[] accumulator) {
         this.accumulator = accumulator;
