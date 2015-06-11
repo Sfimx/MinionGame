@@ -43,7 +43,7 @@ public class HScrollbar {
 	
 	HScrollbar setPos(float value)//between [0;1]
 	{
-	    sliderPosition = xPosition+value*barWidth-barHeight/2;
+	    sliderPosition = xPosition+value*(barWidth-barHeight);
 	    newSliderPosition = sliderPosition;
 	    return this;
 	}
