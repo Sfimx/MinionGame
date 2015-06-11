@@ -11,6 +11,7 @@ public class ImageProcessing extends PApplet   {
     PImage img;
     Capture cam;
     ArrayList<Integer> shapeColors;
+    ArrayList<int[]> corners = new ArrayList<int[]>();
 
     HScrollbar maxBar = new HScrollbar(this, 0, 600, 640, 20);
 
@@ -33,7 +34,7 @@ public class ImageProcessing extends PApplet   {
         shapeColors = new ArrayList<>();
 
         frameRate(30);
-        img = loadImage("board1.jpg");
+        img = loadImage("board4.jpg");
     }
 
     public void draw() {
@@ -118,15 +119,18 @@ public class ImageProcessing extends PApplet   {
         float shapeMaxArea = 0f;
         int shapeCount = 0;
         int shapeRawCount = 0;
+        List<PVector> corners = getCorners(); 
 
         for(int[] quad : cycles) {
             shapeRawCount++;
 
+            
             PVector l1 = lines.get(quad[0]);
             PVector l2 = lines.get(quad[1]);
             PVector l3 = lines.get(quad[2]);
             PVector l4 = lines.get(quad[3]);
-
+          
+            
             PVector c12 = intersection(l1, l2);
             PVector c23 = intersection(l2, l3);
             PVector c34 = intersection(l3, l4);
@@ -145,16 +149,26 @@ public class ImageProcessing extends PApplet   {
                 // draw once what we keep
                 fill(255, 128, 0);
                 stroke(255, 128, 0);
-
+                
+                
                 drawLine(l1.x, l1.y, img.width);
                 drawLine(l2.x, l2.y, img.width);
                 drawLine(l3.x, l3.y, img.width);
                 drawLine(l4.x, l4.y, img.width);
+                
+                c12 = corners.get(0);
+                c23 = corners.get(1); 
+                c34 = corners.get(2); 
+                c41 = corners.get(3);
 
                 ellipse(c12.x, c12.y, 10, 10);
+                text("papayaaaaaa" + 1, c12.x, c12.y);
                 ellipse(c23.x, c23.y, 10, 10);
+                text("papayaaaaaa" + 2, c23.x, c23.y);
                 ellipse(c34.x, c34.y, 10, 10);
+                text("papayaaaaaa" + 3, c34.x, c34.y);
                 ellipse(c41.x, c41.y, 10, 10);
+                text("papayaaaaaa" + 4, c41.x, c41.y);
 
                 shapeMaxArea = shapeArea;
                 noStroke();
@@ -179,9 +193,18 @@ public class ImageProcessing extends PApplet   {
             }
         }
 
+
         accumulator.resize(300, 600);
         image(accumulator, 800, 0);
         image(sobel, 1100, 0);
+        
+        TwoDThreeD twoThree = new TwoDThreeD(img.width, img.height); 
+        
+        PVector rotations = twoThree.get3DRotations(corners);
+        
+        println("rx: " + degrees(rotations.x));
+        println("ry: " + degrees(rotations.y));
+        println("rz: " + degrees(rotations.z));
 
 
         maxBar.display();
@@ -198,6 +221,76 @@ public class ImageProcessing extends PApplet   {
 
         minIntensityTresholdBar.display();
         maxIntensityTresholdBar.display();
+    }
+    
+    public List<PVector> getCorners() {
+    	ArrayList<PVector> corners = new ArrayList<PVector>(); 
+    	
+    	float[][] blur = {
+                {9,12,9},
+                {12,15,12},
+                {9,12,9}
+        };
+ 
+    	PImage threshold = threshold(
+                img,
+                minHueThresholdBar.getPos() * 256,
+                maxHueThresholdBar.getPos() * 256,
+                minBrightnessThresholdBar.getPos() * 256,
+                maxBrightnessThresholdBar.getPos() * 256,
+                minSaturationThresholdBar.getPos() * 256,
+                maxSaturationThresholdBar.getPos() * 256
+        );
+        PImage blurred = convolute(blur, 99, threshold);
+        PImage intensityTreshold = threshold(blurred, 0, 255f, minIntensityTresholdBar.getPos() * 255, maxIntensityTresholdBar.getPos() * 255, 0, 255f);
+        PImage sobel = sobel(intensityTreshold);
+
+
+        ArrayList<PVector> lines = new ArrayList<>();
+        PImage accumulator = hough(sobel, 200, 10, 6, lines);
+        QuadGraph quadGraph = new QuadGraph();
+        quadGraph.build(lines, img.width, img.height);
+        List<int[]> cycles = quadGraph.findCycles();
+
+
+        float shapeMaxArea = 0f;
+        int shapeCount = 0;
+        int shapeRawCount = 0;
+
+        for(int[] quad : cycles) {
+            shapeRawCount++;
+            
+
+            PVector l1 = lines.get(quad[0]);
+            PVector l2 = lines.get(quad[1]);
+            PVector l3 = lines.get(quad[2]);
+            PVector l4 = lines.get(quad[3]);
+
+            PVector c12 = intersection(l1, l2);
+            PVector c23 = intersection(l2, l3);
+            PVector c34 = intersection(l3, l4);
+            PVector c41 = intersection(l4, l1);
+            
+        
+            if (
+                   QuadGraph.isConvex(c12, c23, c34, c41)
+                && QuadGraph.nonFlatQuad(c12, c23, c34, c41)
+            ) {
+                float shapeArea = c12.dist(c23) * c12.dist(c41);
+
+                if(shapeArea < shapeMaxArea) {
+                    continue; 
+                }   
+                corners.clear(); 
+                corners.add(c12); 
+                corners.add(c23); 
+                corners.add(c34);
+                corners.add(c41); 
+               shapeCount++;
+            }
+            
+        }
+        return sortCorners(corners); 
     }
 
     public PImage convolute(float[][] kernel, float weight, PImage img) {
@@ -476,6 +569,35 @@ public class ImageProcessing extends PApplet   {
         float y = (-r2 * cos(phi1) + r1 * cos(phi2)) / d;
 
         return new PVector(x, y);
+    }
+    
+    
+    public static List<PVector> sortCorners(List<PVector> quad){
+    	// Sort corners so that they are ordered clockwise
+    	PVector a = quad.get(0);
+    	PVector b = quad.get(2);
+    	PVector center = new PVector((a.x+b.x)/2,(a.y+b.y)/2);
+    	Collections.sort(quad,new CWComparator(center));
+    	// TODO:
+    	// Re-order the corners so that the first one is the closest to the
+    	// origin (0,0) of the image.
+    	//
+    	// You can use Collections.rotate to shift the corners inside the quad.
+    	
+    	int index = 0; 
+    	PVector origine = new PVector(0,0,0);
+    	float min = Integer.MAX_VALUE; 
+    	
+    	for(int i = 0; i < quad.size(); i++){ 
+    		if (origine.dist(quad.get(i))< min) {
+    			min = origine.dist(quad.get(i)); 
+    			index = i; 
+    		}
+    	}
+    	
+    	Collections.rotate(quad, index);
+    	
+    	return quad;
     }
 
     static public void main(String[] passedArgs) {

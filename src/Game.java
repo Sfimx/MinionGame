@@ -11,6 +11,11 @@ public class Game extends PApplet {
     float rotateX = 0;
     float rotateY = 0;
     float rotateZ = 0;
+    
+    //When moving the scrollbar we need to keep the plate in the old position 
+    float oldRotateX;
+    float oldRotateZ;
+    float oldRotateY; 
 
     float originClickX = 0;
     float originClickY = 0;
@@ -49,6 +54,7 @@ public class Game extends PApplet {
     TopView topView; 
     Scoreboard scoreboard; 
     BarChart barChart; 
+    HScrollbar scroll; 
     
     //List with all the PGraphics that should be on the dashboard
     ArrayList<Element> elements; 
@@ -69,8 +75,10 @@ public class Game extends PApplet {
         elements.add(topView);
         scoreboard = new Scoreboard(Math.round(BOX_SIZE/3), Math.round(BOX_SIZE/2), mover);
         elements.add(scoreboard);
-        barChart = new BarChart(width - Math.round(BOX_SIZE), Math.round(BOX_SIZE/2), scoreboard);
+        scroll = new HScrollbar(this, -100F, HEIGHT/2.0F - 30.0F, 2.4F*WIDTH/4.0F, 20.F, WIDTH/2.0F, HEIGHT/2.0F);
+        barChart = new BarChart(width - Math.round(BOX_SIZE), Math.round(BOX_SIZE/2), scoreboard, scroll);
         elements.add(barChart);
+        
     }
 
     public void draw() {
@@ -88,21 +96,35 @@ public class Game extends PApplet {
 
             dashboard.draw();
             image(dashboard.context, -width/2, height/2-200);
+            
+            //Updating the scroll on the dashboard
+            scroll.update();
+            scroll.display();
           
             popMatrix();
         }
 
-        if (!editMode) {//game mode
+        if (!editMode && !scroll.locked && !scroll.mouseOver) {//game mode
             //USER INPUT
-            rotateX(rotateX);
-            rotateY(rotateY);
-            rotateZ(rotateZ);
-
-            mover.update(rotateX, rotateZ);
-            mover.checkEdges();
-            mover.checkCylinderCollision(all_cylinders, CYLINDER_BASE_SIZE, SPHERE_RADIUS);
+        	oldRotateX = rotateX; 
+        	oldRotateY = rotateY; 
+        	oldRotateZ = rotateZ; 
+        	
+        	rotateX(oldRotateX);
+            rotateY(oldRotateY);
+            rotateZ(oldRotateZ);
+	        mover.update(rotateX,rotateZ);
+	        mover.checkEdges();
+	        mover.checkCylinderCollision(all_cylinders, CYLINDER_BASE_SIZE, SPHERE_RADIUS);
+        	
+     
         }
-
+        //We need to keep the old position while using the scrollbar
+        if (scroll.locked || scroll.mouseOver) {
+        	rotateX(oldRotateX);
+            rotateY(oldRotateY);
+            rotateZ(oldRotateZ);        	
+        }
 
 
         //animation when entering edit mode
@@ -134,7 +156,7 @@ public class Game extends PApplet {
     }
 
     public void mousePressed() {
-        if (!editMode) {//rotate plate only if game mode
+        if (!editMode && !scroll.locked && !scroll.mouseOver) {//rotate plate only if game mode
             originClickX = mouseX;
             originClickY = mouseY;
 
@@ -144,7 +166,7 @@ public class Game extends PApplet {
     }
 
     public void mouseDragged() {
-        if (!editMode) {
+        if (!editMode && !scroll.locked && !scroll.mouseOver) {
             rotateX = max(min(originRotateX+MAX_ANGLE*rotateSpeed*((originClickY - pmouseY)/displayWidth), MAX_ANGLE), -MAX_ANGLE);
             rotateZ = max(min(originRotateZ-MAX_ANGLE*rotateSpeed*((originClickX - pmouseX)/displayHeight), MAX_ANGLE), -MAX_ANGLE);
         }
@@ -403,11 +425,13 @@ public class Game extends PApplet {
             if (location.x >= bound/2) {
                 velocity.x *= -bounceFactor;
                 location.x = bound/2;
+                
                 //Update the points on the scoreboard
                 scoreboard.losePoints();
             } else if (location.x <= -bound/2) {
                 velocity.x *= -bounceFactor;
                 location.x = -bound/2;
+                
                 //Update the points on the scoreboard
                 scoreboard.losePoints();
             }
@@ -569,11 +593,11 @@ public class Game extends PApplet {
     	    context.textSize(17);
     	   //show score
     	    context.text(total, 10, 20);
-    	    context.text(""+totalScore, 10, 40);
+    	    context.text(""+round(totalScore*1000)/1000.0, 10, 40);
     	    context.text(vel, 10, 80);
-    	    context.text(""+mover.velocity.magSq(), 10, 100);
+    	    context.text(""+ round(mover.velocity.magSq()*1000)/1000.0, 10, 100);
     	    context.text(last, 10, 140);
-    	    context.text(""+lastScore, 10, 160);
+    	    context.text(""+round(lastScore*1000)/1000.0, 10, 160);
     	    context.endDraw();
    	 }
    }
@@ -583,25 +607,27 @@ public class Game extends PApplet {
     	private int width; 
     	private int height; 
     	private Scoreboard scoreboard; 
-    	private final int size = 5; 
+    	private final int size = 10; 
     	private final ArrayList<Integer> numberOfSquares = new ArrayList<Integer>(); 
-    	private int counter = 0; 
+    	private int counter = 0;
+    	private HScrollbar scroll; 
     	
-    	public BarChart(int width, int height, Scoreboard scoreboard) {
+    	public BarChart(int width, int height, Scoreboard scoreboard,HScrollbar scroll) {
     		this.width = width; 
     		this.height = height; 
     		this.scoreboard = scoreboard; 
+    		this.scroll = scroll; 
     		context = createGraphics(this.width, this.height, P2D);
     	}
     	
     	private void column(int index){
-    		int x = index*size; 
-    		int y = height; 
+    		float x = index*size*scroll.getPos(); 
+    		float y = height; 
     		context.fill(color(255,0,0));
     		
     		for(int i = 0; i < numberOfSquares.get(index); i++) {
-    			context.rect(x, y, size, size);
-    			y = y - size; 
+    			context.rect(x, y, size*scroll.getPos(), size*scroll.getPos());
+    			y = y - size*scroll.getPos(); 
     		}
     	}
     	
@@ -612,6 +638,7 @@ public class Game extends PApplet {
 
 		@Override
 		public void draw() {
+			
 			
 			if (counter >= 30) {
 				int toInsert; 
@@ -627,6 +654,7 @@ public class Game extends PApplet {
 			for(int i = 0; i < numberOfSquares.size(); i++){
 				column(i);
 			}
+    		
 			context.endDraw();
 		}
     	
