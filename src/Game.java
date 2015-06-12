@@ -97,7 +97,7 @@ public class Game extends PApplet {
         pouet = new ImageProcessing();
         pouet.g = this.g;
 
-        cam = new Movie(this, "C:\\Users\\LPI\\Documents\\_EPFL\\BA3_4\\2eSem\\visual computing\\testvideo.mp4");
+        cam = new Movie(this, "C:\\Users\\Natalija\\Documents\\IN BA4\\testvideo.mp4");
         cam.loop();
 
         twoDThreeD = new TwoDThreeD(cam.width, cam.height);
@@ -121,7 +121,8 @@ public class Game extends PApplet {
 
         if(!editMode && !leaveEditModeAnimation && !editModeAnimation) {
             pushMatrix();
-
+            
+            image(cam, -width/2, -height/2, cam.width/2.5f, cam.height/2.5f);
             dashboard.draw();
             image(dashboard.context, -width/2, height/2-200);
             
@@ -186,13 +187,12 @@ public class Game extends PApplet {
 
         //PVector rotation = pouet.getRotation(false, cam, twoDThreeD);
         PVector rotation = pouet.getRotation(false, cam, twoDThreeD);
-        image(cam, 0, -HEIGHT/2);
         println(rotation);
         if (rotation != null) {
 
-            rotateX = map(rotation.y, -PI, PI, -MAX_ANGLE, MAX_ANGLE);
-            //rotateY = rotation.y;
-            rotateZ = map(rotation.z, -PI, PI, -MAX_ANGLE, MAX_ANGLE);
+            rotateX = map(rotation.x, -PI/2, PI/2, -MAX_ANGLE, MAX_ANGLE);
+           // rotateY = rotation.y;
+            rotateZ = map(rotation.y, -PI/2, PI/2, -MAX_ANGLE, MAX_ANGLE);
         }
     }
 
