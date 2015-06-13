@@ -96,7 +96,7 @@ public class Game extends PApplet {
 
         pouet = new ImageProcessing();
         pouet.g = this.g;
-
+        
         cam = new Movie(this, "C:\\Users\\Natalija\\Documents\\IN BA4\\testvideo.mp4");
         cam.loop();
 
@@ -104,12 +104,13 @@ public class Game extends PApplet {
     }
 
     public void draw() {
+    	
         background(255);
 
         lights();
 
         camera(
-                0, eyeY, eyeZ,     //eye position, begins at "origin"  "right where our real eyes are"
+                0, eyeY - 150, eyeZ + 100,     //eye position, begins at "origin"  "right where our real eyes are"
                 0, 0, 0,           //origin of scene
                 0, 1, 1
         );
@@ -122,13 +123,24 @@ public class Game extends PApplet {
         if(!editMode && !leaveEditModeAnimation && !editModeAnimation) {
             pushMatrix();
             
+            camera(
+                    0, eyeY, eyeZ,     //eye position, begins at "origin"  "right where our real eyes are"
+                    0, 0, 0,           //origin of scene
+                    0, 1, 1
+            );            
             image(cam, -width/2, -height/2, cam.width/2.5f, cam.height/2.5f);
             dashboard.draw();
-            image(dashboard.context, -width/2, height/2-200);
+            image(dashboard.context, -width/2, height/2-185, width, 185);
             
             //Updating the scroll on the dashboard
             scroll.update();
             scroll.display();
+            
+            camera(
+                    0, eyeY - 150, eyeZ - 100,     //eye position, begins at "origin"  "right where our real eyes are"
+                    0, 0, 0,           //origin of scene
+                    0, 1, 1
+            );
           
             popMatrix();
         }
@@ -187,12 +199,16 @@ public class Game extends PApplet {
 
         //PVector rotation = pouet.getRotation(false, cam, twoDThreeD);
         PVector rotation = pouet.getRotation(false, cam, twoDThreeD);
-        println(rotation);
+   //     println(rotation);
         if (rotation != null) {
-
-            rotateX = map(rotation.x, -PI/2, PI/2, -MAX_ANGLE, MAX_ANGLE);
-           // rotateY = rotation.y;
-            rotateZ = map(rotation.y, -PI/2, PI/2, -MAX_ANGLE, MAX_ANGLE);
+        	
+            rotateX = map(rotation.x, -PI, PI, -MAX_ANGLE, MAX_ANGLE);
+        
+         //  rotateY = rotation.z;
+            rotateZ = map(-rotation.y, -PI, PI, -MAX_ANGLE, MAX_ANGLE);
+            
+            oldRotateX = rotateX; 
+            oldRotateZ = rotateZ;
         }
     }
 
@@ -224,7 +240,8 @@ public class Game extends PApplet {
         if (editMode && validPosition) {
             PVector key = new PVector(editorCylinder.x, editorCylinder.y, editorCylinder.z);
             all_cylinders.add(key);
-            cylindersRotation.put(key, random(0, PI));
+            cylindersRotation.put(key, random(0, 2*PI));
+            
         }
     }
 
