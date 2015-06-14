@@ -390,7 +390,6 @@ public class Game extends PApplet {
 
                 if(onceKeypressed)
                     cylinderRotation = random(0, PI);
-                println("shift");
                 noCursor();
                 break;
         }
