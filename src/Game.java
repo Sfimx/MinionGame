@@ -38,10 +38,14 @@ public class Game extends PApplet {
     boolean editModeAnimation = false;
     boolean leaveEditModeAnimation = false;
     boolean validPosition = false;
+    boolean onceKeypressed = true;
+
     float editModeAnimationAngle = 0;
 
     float eyeY = 0;
     float eyeZ = 0;
+
+    float cylinderRotation = 0f;
 
     Mover mover;
 
@@ -62,11 +66,12 @@ public class Game extends PApplet {
     
     //List with all the PGraphics that should be on the dashboard
     ArrayList<Element> elements;
+    boolean newFrame = true;
 
 
     //Capture cam;
     Movie cam;
-    PImage img; 
+    PImage frame;
     boolean displayDashboard; 
     boolean videoControl;
     
@@ -110,10 +115,16 @@ public class Game extends PApplet {
         
     }
 
+    public void movieEvent(Movie m) {
+        cam.read();
+        newFrame = true;
+        frame = cam.get();
+        frame.resize(round(cam.width / 2.5f), round(cam.height / 2.5f));
+    }
+
     public void draw() {
     	
         background(255);
-
         lights();
 
         camera(
@@ -123,9 +134,6 @@ public class Game extends PApplet {
         );
 
         fill(220, 220, 250);
-        cam.read();
-
-
         if(!editMode && !leaveEditModeAnimation && !editModeAnimation) {
             pushMatrix();
             
@@ -186,13 +194,13 @@ public class Game extends PApplet {
         	rotateX(oldRotateX);
             rotateY(oldRotateY);
             rotateZ(oldRotateZ);
-	        mover.update(rotateX,rotateZ);
-	        mover.checkEdges();
+            mover.update(rotateX,rotateZ);
+            mover.checkEdges();
 	        mover.checkCylinderCollision(all_cylinders, CYLINDER_BASE_SIZE, SPHERE_RADIUS);
         }
         //We need to keep the old position while using the scrollbar
         if (scroll.locked || scroll.mouseOver) {
-        	rotateX(oldRotateX);
+            rotateX(oldRotateX);
             rotateY(oldRotateY);
             rotateZ(oldRotateZ);        	
         }
@@ -211,11 +219,13 @@ public class Game extends PApplet {
                 eyeZ = ( (height/2.0f) / tan(PI*30.0f / 180.0f) ) * (1-editModeAnimationAngle);
                 eyeY =  -editModeAnimationAngle * (height/2 / tan(radians(30)) + BOX_HEIGHT/2);
             } else {
+                cam.loop();
                 editMode = editModeAnimation;
                 editModeAnimation = false;
                 leaveEditModeAnimation = false;
             }
         }
+
         fill(220, 220, 250);
 
         box(BOX_SIZE, BOX_HEIGHT, BOX_SIZE);
@@ -228,16 +238,17 @@ public class Game extends PApplet {
 
         if(videoControl){
 	        //PVector rotation = pouet.getRotation(false, cam, twoDThreeD);
-	        PVector rotation = pouet.getRotation(false, cam, twoDThreeD);
-	        //println(rotation);
-	        if (rotation != null) {
-	        	
-	            rotateX = map(rotation.x, -PI, PI, -MAX_ANGLE, MAX_ANGLE);
-	            // rotateY = rotation.z;
-	            rotateZ = map(-rotation.y, -PI, PI, -MAX_ANGLE, MAX_ANGLE);
-	            
-	            oldRotateX = rotateX; 
-	            oldRotateZ = rotateZ;
+	        if(!editMode && !editModeAnimation && !leaveEditModeAnimation && newFrame) {
+	            newFrame = false;
+	            PVector rotation = pouet.getRotation(false, cam, twoDThreeD);
+	            // println(rotation);
+	            if (rotation != null) {
+	            	rotateX = map(rotation.x, -PI, PI, -MAX_ANGLE, MAX_ANGLE);
+	            	//  rotateY = rotation.z;
+	            	rotateZ = map(-rotation.y, -PI, PI, -MAX_ANGLE, MAX_ANGLE);
+	                oldRotateX = rotateX; 
+	                oldRotateZ = rotateZ;
+	            }
 	        }
         }
     }
@@ -270,8 +281,8 @@ public class Game extends PApplet {
         if (editMode && validPosition) {
             PVector key = new PVector(editorCylinder.x, editorCylinder.y, editorCylinder.z);
             all_cylinders.add(key);
-            cylindersRotation.put(key, random(0, 2*PI));
-            
+            cylindersRotation.put(key, cylinderRotation);
+            cylinderRotation = random(0, PI);
         }
       	if (mouseX > width - 100 && mouseX < width -5	
         		&& mouseY > 5 && mouseY < 55){
@@ -323,6 +334,8 @@ public class Game extends PApplet {
 
         if(cylindersRotation.containsKey(position))
             rotateZ(cylindersRotation.get(position));
+        else
+            rotateZ(cylinderRotation);
 
         shape(cylinder);
 
@@ -359,14 +372,22 @@ public class Game extends PApplet {
       //  float angle = PI/20;
         switch(keyCode) {
             case SHIFT:
+                cam.pause();
                 editModeAnimation = true;
                 leaveEditModeAnimation = false;
+
+                if(onceKeypressed)
+                    cylinderRotation = random(0, PI);
+                println("shift");
                 noCursor();
                 break;
         }
+
+        onceKeypressed = false;
     }
 
     public void keyReleased() {
+        onceKeypressed = true;
         switch(keyCode) {
             case SHIFT:
                 editModeAnimation = false;
@@ -480,7 +501,7 @@ public class Game extends PApplet {
         PVector velocity;
 
         float bound;
-        float bounceFactor = 0.8f;
+        float bounceFactor = 0.9f;
 
         PVector gravity;
         float gravityConstant;
@@ -649,32 +670,39 @@ public class Game extends PApplet {
    	 private PVector oldLocation;
    	 private float lastScore = 0; 
    	 private int width;
-   	 private int height; 
+   	 private int height;
+
+        private float lastScoreDisplay;
+        private float velocityDispplay;
+        private float totalScoreDisplay;
+
+
+     final private static int COUNTER_FRAME = 5;
+     private int counter;
+        private PVector velocity;
    	 
    	 public Scoreboard(int width, int height, Mover mover) {
    		 this.width = width;
    		 this.height = height;
    		 this.mover= mover; 
    		 context = createGraphics(width, height, P2D);
-   		 this.oldLocation = mover.ballLocation(); 
+   		 this.oldLocation = mover.ballLocation();
+         this.counter = 0;
+         velocity = mover.velocity;
    	 }
    	 
    	 public void gainPoints() {
    		 if(!oldLocation.equals(mover.location)){
    			 totalScore = totalScore + mover.velocity.magSq();  
-   			 lastScore = mover.velocity.magSq(); 
-   		 	 mover.velocity.x += Math.signum((float)mover.velocity.x);
-   			 mover.velocity.y += Math.signum((float)mover.velocity.y);
+   			 lastScore = mover.velocity.magSq();
    			 oldLocation = mover.ballLocation();
    		 }
    	}
    	 
-   	 public void losePoints() { 
+   	 public void losePoints() {
    		 if(!oldLocation.equals(mover.location)){
    			 totalScore = totalScore - mover.velocity.magSq(); 
-   			 lastScore = - mover.velocity.magSq(); 
-   			 mover.velocity.x -= Math.signum((float)mover.velocity.x);
-   			 mover.velocity.y -= Math.signum((float)mover.velocity.y);
+   			 lastScore = - mover.velocity.magSq();
    			 oldLocation = mover.ballLocation();
    		 }
    	 }
@@ -688,8 +716,18 @@ public class Game extends PApplet {
  	 }
    	 
    	 public void draw() {
-    	    context.beginDraw(); 
-    	   // context.clear();
+         // context.clear();
+         if(counter == 0) {
+             lastScoreDisplay = round(lastScore*10)/10.0f;
+             velocityDispplay = round(velocity.magSq()*10)/10.0f;
+             totalScoreDisplay = round(totalScore*10)/10.0f;
+         }
+         counter = (counter + 1) % COUNTER_FRAME;
+
+
+         context.beginDraw();
+
+
     	    
     	    String total = "Total score:";
     	    String vel= "Velocity: "; 
@@ -700,11 +738,11 @@ public class Game extends PApplet {
     	    context.textSize(17);
     	   //show score
     	    context.text(total, 10, 20);
-    	    context.text(""+round(totalScore*1000)/1000.0, 10, 40);
+    	    context.text("" + totalScoreDisplay, 10, 40);
     	    context.text(vel, 10, 80);
-    	    context.text(""+ round(mover.velocity.magSq()*1000)/1000.0, 10, 100);
+    	    context.text("" + velocityDispplay, 10, 100);
     	    context.text(last, 10, 140);
-    	    context.text(""+round(lastScore*1000)/1000.0, 10, 160);
+    	    context.text("" + lastScoreDisplay, 10, 160);
     	    context.endDraw();
    	 }
    }
