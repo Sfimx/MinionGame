@@ -118,8 +118,10 @@ public class Game extends PApplet {
     }
 
     public void movieEvent(Movie m) {
-        cam.read();
-        newFrame = true;
+        m.read();
+        if(m == cam) {
+            newFrame = true;
+        }
     }
 
     public void draw() {
