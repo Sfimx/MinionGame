@@ -120,7 +120,25 @@ public class TangibleGame extends PApplet {
     }
 
     public void movieEvent(Movie m) {
-        m.read();
+        if(m == null)
+            return;
+
+        if(m.available()) {
+            try {
+                m.read();
+            }
+            catch(NullPointerException e) {
+                /*
+                 * We followed example from processing docs
+                 * for movieEvent method, but we still get
+                 * NullPointerException from gstreamer even
+                 * if the video plays, so we silent them here
+                 * after multiple checks (null checking and
+                 * availability checking)
+                 */
+            }
+        }
+
         if(m == cam) {
             newFrame = true;
         }
