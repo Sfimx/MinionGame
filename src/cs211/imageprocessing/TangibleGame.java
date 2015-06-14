@@ -123,6 +123,7 @@ public class TangibleGame extends PApplet {
         if(m == null)
             return;
 
+
         if(m.available()) {
             try {
                 m.read();
@@ -160,12 +161,12 @@ public class TangibleGame extends PApplet {
             pushMatrix();
             
             if(!videoControl){
-            	 camera(
-                         0, eyeY, eyeZ+600,    
-                         0, 0, 0,         
+                camera(
+                         0, eyeY, eyeZ+600,
+                         0, 0, 0,
                          0, 1, 1
-                 );  
-            	image(img, -width/2 - 750, -height/2 - 600);
+                 );
+                image(img, -width/2 - 500, -height/2 - 550);
             }
             
             camera(
