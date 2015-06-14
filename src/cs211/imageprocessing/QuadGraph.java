@@ -258,7 +258,7 @@ public class QuadGraph {
      */
    public static boolean validArea(float area, float max_area, float min_area) {                
         boolean valid = (area < max_area && area > min_area);   
-        if (!valid) System.out.println("Area out of range");        
+      //  if (!valid) System.out.println("Area out of range");        
         return valid;
    }
     
@@ -276,7 +276,7 @@ public class QuadGraph {
        
        float area = Math.abs(0.5f * (i1 + i2 + i3 + i4));
        
-       System.out.println("AREA : "+area);  
+      // System.out.println("AREA : "+area);  
        return area;
    }
   

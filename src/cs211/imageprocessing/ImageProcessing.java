@@ -40,7 +40,7 @@ public class ImageProcessing extends PApplet {
     public void setup() {
         size(1280, 745);
         frameRate(60);
-        cam = new Movie(this, "C:\\Users\\LPI\\Documents\\_EPFL\\BA3_4\\2eSem\\visual computing\\testvideo.mp4");
+        cam = new Movie(this, "C:\\Users\\Natalija\\Documents\\IN BA4\\testvideo.mp4");
         cam.loop();
     }
 
@@ -302,9 +302,9 @@ public class ImageProcessing extends PApplet {
         if (selected != null && selected.size() == 4) {
             rotations = twoDThreeD.get3DRotations(selected);
 
-            println("rx: " + degrees(rotations.x));
-            println("ry: " + degrees(rotations.y));
-            println("rz: " + degrees(rotations.z));
+      //      println("rx: " + degrees(rotations.x));
+      //      println("ry: " + degrees(rotations.y));
+       //     println("rz: " + degrees(rotations.z));
 
             sorted = sortCorners(selected);
             if(display) {

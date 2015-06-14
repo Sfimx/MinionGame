@@ -74,6 +74,7 @@ public class Game extends PApplet {
     PImage frame;
     boolean displayDashboard; 
     boolean videoControl;
+    PImage img; 
     
     public void setup() {
         size(WIDTH, HEIGHT, P3D);
@@ -101,6 +102,8 @@ public class Game extends PApplet {
         scroll = new HScrollbar(this, -115F, HEIGHT/2.0F - 30.0F, 2.4F*WIDTH/4.0F, 20.F, WIDTH/2.0F, HEIGHT/2.0F);
         barChart = new BarChart(width - Math.round(BOX_SIZE), Math.round(BOX_SIZE/2), scoreboard, scroll);
         elements.add(barChart);
+        
+        img = loadImage("background.jpg");
         
         displayDashboard = false; 
         videoControl = true; 
@@ -137,11 +140,22 @@ public class Game extends PApplet {
         if(!editMode && !leaveEditModeAnimation && !editModeAnimation) {
             pushMatrix();
             
+            if(!videoControl){
+            	 camera(
+                         0, eyeY, eyeZ+600,    
+                         0, 0, 0,         
+                         0, 1, 1
+                 );  
+            	image(img, -width/2 - 750, -height/2 - 600);
+            }
+            
             camera(
                     0, eyeY, eyeZ,     //eye position, begins at "origin"  "right where our real eyes are"
                     0, 0, 0,           //origin of scene
                     0, 1, 1
             );  
+            
+           
             if(videoControl)
             	image(cam, -width/2, -height/2, cam.width/2.5f, cam.height/2.5f);
             
@@ -172,9 +186,7 @@ public class Game extends PApplet {
                 text("ON", width/2 - 70, -height/2 + 100 );
             } else {
             	text("OFF", width/2 - 70, -height/2 + 100 );
-            }
-            
-            
+            }            
             
             camera(
                     0, eyeY - 150, eyeZ - 100,     //eye position, begins at "origin"  "right where our real eyes are"
@@ -282,7 +294,7 @@ public class Game extends PApplet {
             PVector key = new PVector(editorCylinder.x, editorCylinder.y, editorCylinder.z);
             all_cylinders.add(key);
             cylindersRotation.put(key, cylinderRotation);
-            cylinderRotation = random(0, PI);
+            cylinderRotation = random(0, 2*PI);
         }
       	if (mouseX > width - 100 && mouseX < width -5	
         		&& mouseY > 5 && mouseY < 55){
