@@ -71,8 +71,7 @@ public class Game extends PApplet {
 
     //Capture cam;
     Movie cam;
-    PImage frame;
-    boolean displayDashboard; 
+    boolean displayDashboard;
     boolean videoControl;
     PImage img; 
     
@@ -121,8 +120,6 @@ public class Game extends PApplet {
     public void movieEvent(Movie m) {
         cam.read();
         newFrame = true;
-        frame = cam.get();
-        frame.resize(round(cam.width / 2.5f), round(cam.height / 2.5f));
     }
 
     public void draw() {
