@@ -1,3 +1,5 @@
+package cs211.imageprocessing;
+
 import cs211.imageprocessing.*;
 import processing.core.*;
 import processing.event.MouseEvent;
@@ -5,7 +7,7 @@ import processing.video.Movie;
 
 import java.util.*;
 
-public class Game extends PApplet {
+public class TangibleGame extends PApplet {
 
     float rotateX = 0;
     float rotateY = 0;
@@ -59,7 +61,7 @@ public class Game extends PApplet {
     TopView topView; 
     Scoreboard scoreboard; 
     BarChart barChart;
-    HScrollbar scroll;
+    TranslatedHScrollbar scroll;
 
     ImageProcessing pouet;
     TwoDThreeD twoDThreeD;
@@ -98,7 +100,7 @@ public class Game extends PApplet {
         elements.add(topView);
         scoreboard = new Scoreboard(Math.round(BOX_SIZE/3), Math.round(BOX_SIZE/2), mover);
         elements.add(scoreboard);
-        scroll = new HScrollbar(this, -115F, HEIGHT/2.0F - 30.0F, 2.4F*WIDTH/4.0F, 20.F, WIDTH/2.0F, HEIGHT/2.0F);
+        scroll = new TranslatedHScrollbar(this, -115F, HEIGHT/2.0F - 30.0F, 2.4F*WIDTH/4.0F, 20.F, WIDTH/2.0F, HEIGHT/2.0F);
         barChart = new BarChart(width - Math.round(BOX_SIZE), Math.round(BOX_SIZE/2), scoreboard, scroll);
         elements.add(barChart);
         
@@ -110,7 +112,7 @@ public class Game extends PApplet {
         pouet = new ImageProcessing();
         pouet.g = this.g;
         
-        cam = new Movie(this, "testvideo.mp4");
+        cam = new Movie(this, "C:\\Users\\Sfimx\\Documents\\testvideo.mp4");
         cam.loop();
 
         twoDThreeD = new TwoDThreeD(cam.width, cam.height);
@@ -766,9 +768,9 @@ public class Game extends PApplet {
     	private final int size = 10; 
     	private final ArrayList<Integer> numberOfSquares = new ArrayList<Integer>(); 
     	private int counter = 0;
-    	private HScrollbar scroll;
+    	private TranslatedHScrollbar scroll;
     	
-    	public BarChart(int width, int height, Scoreboard scoreboard,HScrollbar scroll) {
+    	public BarChart(int width, int height, Scoreboard scoreboard, TranslatedHScrollbar scroll) {
     		this.width = width; 
     		this.height = height; 
     		this.scoreboard = scoreboard; 
@@ -818,7 +820,7 @@ public class Game extends PApplet {
     }
 
     static public void main(String[] passedArgs) {
-        String[] appletArgs = new String[] { "Game" };
+        String[] appletArgs = new String[] { "cs211.imageprocessing.TangibleGame" };
         if (passedArgs != null) {
             PApplet.main(concat(appletArgs, passedArgs));
         } else {

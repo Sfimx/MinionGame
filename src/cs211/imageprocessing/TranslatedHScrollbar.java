@@ -1,6 +1,8 @@
+package cs211.imageprocessing;
+
 import processing.core.PApplet;
 
-public class HScrollbar {
+public class TranslatedHScrollbar {
 	PApplet parent;
 	
 	float barWidth; // Bar's width in pixels
@@ -28,7 +30,7 @@ public class HScrollbar {
 	 * @param h
 	 *            The height of the bar in pixels
 	 */
-	HScrollbar(PApplet p, float x, float y, float w, float h) {
+	TranslatedHScrollbar(PApplet p, float x, float y, float w, float h) {
 		parent = p;
 		barWidth = w;
 		barHeight = h;
@@ -42,7 +44,7 @@ public class HScrollbar {
 		translatedY = 0f; 		
 	}
 
-	HScrollbar(PApplet p, float x, float y, float w, float h, float translateX, float translateY) {
+	TranslatedHScrollbar(PApplet p, float x, float y, float w, float h, float translateX, float translateY) {
 		parent = p;
 		barWidth = w;
 		barHeight = h;
