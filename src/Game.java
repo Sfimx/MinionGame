@@ -168,24 +168,25 @@ public class Game extends PApplet {
             
             //Buttons to off/on the dashboard
             fill(128);
-            rect(width/2 - 100, -height/2 + 5, 95, 50) ;
+            int padding = 50;
+            rect(width/2 - 100 - padding, -height/2 + 5, 95 + padding, 50) ;
             fill(255);
-            text("Dashboard", width/2 - 90, -height/2 + 30 );
+            text("Turn dashboard", width/2 - 75 - padding, -height/2 + 30 );
             if(!displayDashboard){
-                text("ON", width/2 - 70, -height/2 + 45 );
+                text("on", width/2 - 85, -height/2 + 45 );
             } else {
-            	text("OFF", width/2 - 70, -height/2 + 45 );
+            	text("off", width/2 - 85, -height/2 + 45 );
             }
             
             //Buttond to off/on the video control
             fill(128);
-            rect(width/2 - 100, -height/2 + 60, 95, 50) ;
+            rect(width / 2 - 100 - padding, -height / 2 + 60, 95 + padding, 50) ;
             fill(255);
-            text("Video control", width/2 - 90, -height/2 + 85 );
+            text("Turn control by movie", width / 2 - 90 - padding, -height / 2 + 85 );
             if(!videoControl){
-                text("ON", width/2 - 70, -height/2 + 100 );
+                text("on", width/2 - 85, -height/2 + 100 );
             } else {
-            	text("OFF", width/2 - 70, -height/2 + 100 );
+            	text("off", width/2 - 85, -height/2 + 100 );
             }            
             
             camera(
