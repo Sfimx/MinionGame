@@ -66,7 +66,10 @@ public class Game extends PApplet {
 
     //Capture cam;
     Movie cam;
-
+    PImage img; 
+    boolean displayDashboard; 
+    boolean videoControl;
+    
     public void setup() {
         size(WIDTH, HEIGHT, P3D);
         BOX_SIZE = (height / 2 > width) ? width / 2 : height / 2;
@@ -90,17 +93,21 @@ public class Game extends PApplet {
         elements.add(topView);
         scoreboard = new Scoreboard(Math.round(BOX_SIZE/3), Math.round(BOX_SIZE/2), mover);
         elements.add(scoreboard);
-        scroll = new HScrollbar(this, -100F, HEIGHT/2.0F - 30.0F, 2.4F*WIDTH/4.0F, 20.F, WIDTH/2.0F, HEIGHT/2.0F);
+        scroll = new HScrollbar(this, -115F, HEIGHT/2.0F - 30.0F, 2.4F*WIDTH/4.0F, 20.F, WIDTH/2.0F, HEIGHT/2.0F);
         barChart = new BarChart(width - Math.round(BOX_SIZE), Math.round(BOX_SIZE/2), scoreboard, scroll);
         elements.add(barChart);
-
+        
+        displayDashboard = false; 
+        videoControl = true; 
+        
         pouet = new ImageProcessing();
         pouet.g = this.g;
         
-        cam = new Movie(this, "C:\\Users\\Natalija\\Documents\\IN BA4\\testvideo.mp4");
+        cam = new Movie(this, "testvideo.mp4");
         cam.loop();
 
         twoDThreeD = new TwoDThreeD(cam.width, cam.height);
+        
     }
 
     public void draw() {
@@ -116,7 +123,6 @@ public class Game extends PApplet {
         );
 
         fill(220, 220, 250);
-
         cam.read();
 
 
@@ -127,14 +133,40 @@ public class Game extends PApplet {
                     0, eyeY, eyeZ,     //eye position, begins at "origin"  "right where our real eyes are"
                     0, 0, 0,           //origin of scene
                     0, 1, 1
-            );            
-            image(cam, -width/2, -height/2, cam.width/2.5f, cam.height/2.5f);
-            dashboard.draw();
-            image(dashboard.context, -width/2, height/2-185, width, 185);
+            );  
+            if(videoControl)
+            	image(cam, -width/2, -height/2, cam.width/2.5f, cam.height/2.5f);
             
-            //Updating the scroll on the dashboard
-            scroll.update();
-            scroll.display();
+            if(displayDashboard) {
+            	dashboard.draw();
+            	image(dashboard.context, -width/2, height/2-185, width, 185);
+            	scroll.update();
+            	scroll.display();
+            }
+            
+            //Buttons to off/on the dashboard
+            fill(128);
+            rect(width/2 - 100, -height/2 + 5, 95, 50) ;
+            fill(255);
+            text("Dashboard", width/2 - 90, -height/2 + 30 );
+            if(!displayDashboard){
+                text("ON", width/2 - 70, -height/2 + 45 );
+            } else {
+            	text("OFF", width/2 - 70, -height/2 + 45 );
+            }
+            
+            //Buttond to off/on the video control
+            fill(128);
+            rect(width/2 - 100, -height/2 + 60, 95, 50) ;
+            fill(255);
+            text("Video control", width/2 - 90, -height/2 + 85 );
+            if(!videoControl){
+                text("ON", width/2 - 70, -height/2 + 100 );
+            } else {
+            	text("OFF", width/2 - 70, -height/2 + 100 );
+            }
+            
+            
             
             camera(
                     0, eyeY - 150, eyeZ - 100,     //eye position, begins at "origin"  "right where our real eyes are"
@@ -157,8 +189,6 @@ public class Game extends PApplet {
 	        mover.update(rotateX,rotateZ);
 	        mover.checkEdges();
 	        mover.checkCylinderCollision(all_cylinders, CYLINDER_BASE_SIZE, SPHERE_RADIUS);
-        	
-     
         }
         //We need to keep the old position while using the scrollbar
         if (scroll.locked || scroll.mouseOver) {
@@ -196,19 +226,19 @@ public class Game extends PApplet {
         noFill();
         drawObstacles();
 
-
-        //PVector rotation = pouet.getRotation(false, cam, twoDThreeD);
-        PVector rotation = pouet.getRotation(false, cam, twoDThreeD);
-   //     println(rotation);
-        if (rotation != null) {
-        	
-            rotateX = map(rotation.x, -PI, PI, -MAX_ANGLE, MAX_ANGLE);
-        
-         //  rotateY = rotation.z;
-            rotateZ = map(-rotation.y, -PI, PI, -MAX_ANGLE, MAX_ANGLE);
-            
-            oldRotateX = rotateX; 
-            oldRotateZ = rotateZ;
+        if(videoControl){
+	        //PVector rotation = pouet.getRotation(false, cam, twoDThreeD);
+	        PVector rotation = pouet.getRotation(false, cam, twoDThreeD);
+	        //println(rotation);
+	        if (rotation != null) {
+	        	
+	            rotateX = map(rotation.x, -PI, PI, -MAX_ANGLE, MAX_ANGLE);
+	            // rotateY = rotation.z;
+	            rotateZ = map(-rotation.y, -PI, PI, -MAX_ANGLE, MAX_ANGLE);
+	            
+	            oldRotateX = rotateX; 
+	            oldRotateZ = rotateZ;
+	        }
         }
     }
 
@@ -243,6 +273,17 @@ public class Game extends PApplet {
             cylindersRotation.put(key, random(0, 2*PI));
             
         }
+      	if (mouseX > width - 100 && mouseX < width -5	
+        		&& mouseY > 5 && mouseY < 55){
+        		displayDashboard = !displayDashboard;
+        }
+      	
+      	if (mouseX > width - 100 && mouseX < width -5	
+        		&& mouseY > 60 && mouseY < 110){
+        		videoControl = !videoControl;
+        }
+      	
+      	
     }
 
     public void mouseMoved() {
@@ -717,6 +758,7 @@ public class Game extends PApplet {
 			counter++;			
 			context.beginDraw(); 
 			context.fill(100);
+			context.rect(0, 0, context.width, context.height);
 			for(int i = 0; i < numberOfSquares.size(); i++){
 				column(i);
 			}
