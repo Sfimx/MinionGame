@@ -66,10 +66,12 @@ public class Game extends PApplet {
     
     //List with all the PGraphics that should be on the dashboard
     ArrayList<Element> elements;
+    boolean newFrame = true;
 
 
     //Capture cam;
     Movie cam;
+    PImage frame;
 
     public void setup() {
         size(WIDTH, HEIGHT, P3D);
@@ -107,6 +109,13 @@ public class Game extends PApplet {
         twoDThreeD = new TwoDThreeD(cam.width, cam.height);
     }
 
+    public void movieEvent(Movie m) {
+        cam.read();
+        newFrame = true;
+        frame = cam.get();
+        frame.resize(round(cam.width / 2.5f), round(cam.height / 2.5f));
+    }
+
     public void draw() {
     	
         background(255);
@@ -120,9 +129,6 @@ public class Game extends PApplet {
 
         fill(220, 220, 250);
 
-        cam.read();
-
-
         if(!editMode && !leaveEditModeAnimation && !editModeAnimation) {
             pushMatrix();
             
@@ -131,7 +137,7 @@ public class Game extends PApplet {
                     0, 0, 0,           //origin of scene
                     0, 1, 1
             );            
-            image(cam, -width/2, -height/2, cam.width/2.5f, cam.height/2.5f);
+            image(frame, -width/2, -height/2, cam.width / 2.5f, cam.height / 2.5f);
             dashboard.draw();
             image(dashboard.context, -width/2, height/2-185, width, 185);
             
@@ -184,6 +190,7 @@ public class Game extends PApplet {
                 eyeZ = ( (height/2.0f) / tan(PI*30.0f / 180.0f) ) * (1-editModeAnimationAngle);
                 eyeY =  -editModeAnimationAngle * (height/2 / tan(radians(30)) + BOX_HEIGHT/2);
             } else {
+                cam.loop();
                 editMode = editModeAnimation;
                 editModeAnimation = false;
                 leaveEditModeAnimation = false;
@@ -202,17 +209,21 @@ public class Game extends PApplet {
 
 
         //PVector rotation = pouet.getRotation(false, cam, twoDThreeD);
-        PVector rotation = pouet.getRotation(false, cam, twoDThreeD);
-   //     println(rotation);
-        if (rotation != null) {
-        	
-            rotateX = map(rotation.x, -PI, PI, -MAX_ANGLE, MAX_ANGLE);
-        
-         //  rotateY = rotation.z;
-            rotateZ = map(-rotation.y, -PI, PI, -MAX_ANGLE, MAX_ANGLE);
-            
-            oldRotateX = rotateX; 
-            oldRotateZ = rotateZ;
+        if(!editMode && !editModeAnimation && !leaveEditModeAnimation && newFrame) {
+            newFrame = false;
+            PVector rotation = pouet.getRotation(false, cam, twoDThreeD);
+            //     println(rotation);
+            if (rotation != null) {
+
+
+                rotateX = map(rotation.x, -PI, PI, -MAX_ANGLE, MAX_ANGLE);
+
+                //  rotateY = rotation.z;
+                rotateZ = map(-rotation.y, -PI, PI, -MAX_ANGLE, MAX_ANGLE);
+
+                oldRotateX = rotateX;
+                oldRotateZ = rotateZ;
+            }
         }
     }
 
@@ -324,6 +335,7 @@ public class Game extends PApplet {
       //  float angle = PI/20;
         switch(keyCode) {
             case SHIFT:
+                cam.pause();
                 editModeAnimation = true;
                 leaveEditModeAnimation = false;
 
