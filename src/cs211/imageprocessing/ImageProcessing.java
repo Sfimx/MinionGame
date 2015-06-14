@@ -40,7 +40,7 @@ public class ImageProcessing extends PApplet {
     public void setup() {
         size(1280, 745);
         frameRate(60);
-        cam = new Movie(this, "C:\\Users\\Natalija\\Documents\\IN BA4\\testvideo.mp4");
+        cam = new Movie(this, "testvideo.mp4");
         cam.loop();
     }
 
