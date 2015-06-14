@@ -294,12 +294,12 @@ public class Game extends PApplet {
             cylindersRotation.put(key, cylinderRotation);
             cylinderRotation = random(0, 2*PI);
         }
-      	if (mouseX > width - 100 && mouseX < width -5	
+      	if (mouseX > width - 100 - 50 && mouseX < width -5
         		&& mouseY > 5 && mouseY < 55){
         		displayDashboard = !displayDashboard;
         }
       	
-      	if (mouseX > width - 100 && mouseX < width -5	
+      	if (mouseX > width - 100 - 50 && mouseX < width -5
         		&& mouseY > 60 && mouseY < 110){
         		videoControl = !videoControl;
         }
